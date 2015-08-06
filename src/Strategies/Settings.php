@@ -19,6 +19,7 @@
 use \Psr\Http\Message\RequestInterface;
 use \Neomerx\Cors\Contracts\Http\ParsedUrlInterface;
 use \Neomerx\Cors\Contracts\AnalysisStrategyInterface;
+use \Neomerx\Cors\Contracts\Constants\CorsResponseHeaders;
 
 /**
  * Implements strategy as a simple set of setting identical for all resources and requests.
@@ -38,12 +39,14 @@ class Settings implements AnalysisStrategyInterface
     /**
      * A list of allowed request origins (lower-cased, no trail slashes).
      * Value `true` enables and value `null` disables origin.
+     * If all origins '*' are enabled all settings for other origins are ignored.
      *
      * For example,
      *
      * public static $allowedOrigins = [
      *     'http://example.com:123' => true,
      *     'http://evil.com'        => null,
+     *     '*'                      => null,
      * ];
      *
      * @var array
@@ -198,8 +201,13 @@ class Settings implements AnalysisStrategyInterface
      */
     public function isRequestOriginAllowed(ParsedUrlInterface $requestOrigin)
     {
-        $requestOriginStr = strtolower($requestOrigin->getOrigin());
-        $isAllowed = isset(static::$allowedOrigins[$requestOriginStr]);
+        // check if all origins are allowed with '*'
+        $isAllowed = isset(static::$allowedOrigins[CorsResponseHeaders::VALUE_ALLOW_ORIGIN_ALL]);
+
+        if ($isAllowed === false) {
+            $requestOriginStr = strtolower($requestOrigin->getOrigin());
+            $isAllowed        = isset(static::$allowedOrigins[$requestOriginStr]);
+        }
 
         return $isAllowed;
     }

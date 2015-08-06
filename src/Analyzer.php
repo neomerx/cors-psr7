@@ -128,6 +128,8 @@ class Analyzer implements AnalyzerInterface
         if ($this->strategy->isRequestCredentialsSupported($request) === true) {
             $headers[CorsResponseHeaders::ALLOW_CREDENTIALS] = CorsResponseHeaders::VALUE_ALLOW_CREDENTIALS_TRUE;
         }
+        // #6.4
+        $headers[CorsResponseHeaders::VARY] = CorsRequestHeaders::ORIGIN;
 
         // #6.1.4
         $exposedHeaders = $this->strategy->getResponseExposedHeaders($request);
@@ -190,6 +192,8 @@ class Analyzer implements AnalyzerInterface
         if ($this->strategy->isRequestCredentialsSupported($request) === true) {
             $headers[CorsResponseHeaders::ALLOW_CREDENTIALS] = CorsResponseHeaders::VALUE_ALLOW_CREDENTIALS_TRUE;
         }
+        // #6.4
+        $headers[CorsResponseHeaders::VARY] = CorsRequestHeaders::ORIGIN;
 
         // #6.2.8
         if ($this->strategy->isPreFlightCanBeCached($request) === true) {

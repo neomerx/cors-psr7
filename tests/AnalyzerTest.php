@@ -114,6 +114,7 @@ class AnalyzerTest extends BaseTestCase
             CorsResponseHeaders::EXPOSE_HEADERS    => ['Content-Type', 'X-Custom-Header'],
             CorsResponseHeaders::ALLOW_ORIGIN      => $allowedOrigin,
             CorsResponseHeaders::ALLOW_CREDENTIALS => CorsResponseHeaders::VALUE_ALLOW_CREDENTIALS_TRUE,
+            CorsResponseHeaders::VARY              => CorsRequestHeaders::ORIGIN,
         ], $result->getResponseHeaders());
     }
 
@@ -234,6 +235,7 @@ class AnalyzerTest extends BaseTestCase
         $this->assertEquals([
             CorsResponseHeaders::ALLOW_ORIGIN      => $allowedOrigin,
             CorsResponseHeaders::ALLOW_CREDENTIALS => CorsResponseHeaders::VALUE_ALLOW_CREDENTIALS_TRUE,
+            CorsResponseHeaders::VARY              => CorsRequestHeaders::ORIGIN,
             CorsResponseHeaders::MAX_AGE           => 60,
             CorsResponseHeaders::ALLOW_METHODS     => 'GET, POST, DELETE',
             CorsResponseHeaders::ALLOW_HEADERS     => 'content-type, x-enabled-custom-header',

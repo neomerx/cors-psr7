@@ -21,6 +21,7 @@ use \Neomerx\Tests\Cors\BaseTestCase;
 use \Psr\Http\Message\RequestInterface;
 use \Neomerx\Tests\Cors\Factory\FactoryTest;
 use \Neomerx\Cors\Contracts\Factory\FactoryInterface;
+use \Neomerx\Cors\Contracts\Constants\CorsResponseHeaders;
 
 /**
  * @package Neomerx\Tests\JsonApi
@@ -124,8 +125,14 @@ class SettingsTest extends BaseTestCase
         }
 
         // and one more not from the white list
-        $requestOrigin = $this->factory->createParsedUrl('http://hax.com');
+        $forbiddenOrigin = 'http://hax.com';
+        $requestOrigin   = $this->factory->createParsedUrl($forbiddenOrigin);
         $this->assertFalse($this->appSettings->isRequestOriginAllowed($requestOrigin));
+
+        // now enable all origins and check forbidden again
+        AppTestSettings::$allowedOrigins[CorsResponseHeaders::VALUE_ALLOW_ORIGIN_ALL] = true;
+        $this->assertTrue($this->appSettings->isRequestOriginAllowed($requestOrigin));
+        AppTestSettings::$allowedOrigins[CorsResponseHeaders::VALUE_ALLOW_ORIGIN_ALL] = null;
     }
 
     /**

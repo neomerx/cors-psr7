@@ -17,6 +17,7 @@
  */
 
 use \Neomerx\Cors\Strategies\Settings;
+use \Neomerx\Cors\Contracts\Constants\CorsResponseHeaders;
 
 /**
  * NOTE: This class and its static properties are used by more than 1 test.
@@ -48,8 +49,10 @@ class AppTestSettings extends Settings
      * @inheritdoc
      */
     public static $allowedOrigins = [
-        'http://good.example.com:321' => true,
-        'http://evil.example.com:123' => null,
+        'http://good.example.com:321'                => true,
+        'http://evil.example.com:123'                => null,
+        CorsResponseHeaders::VALUE_ALLOW_ORIGIN_ALL  => null,
+        CorsResponseHeaders::VALUE_ALLOW_ORIGIN_NULL => null,
     ];
 
     /**
