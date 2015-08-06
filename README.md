@@ -1,4 +1,9 @@
 [![Project Management](https://img.shields.io/badge/project-management-blue.svg)](https://waffle.io/neomerx/cors-psr7)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/neomerx/cors-psr7/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/neomerx/cors-psr7/?branch=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/neomerx/cors-psr7/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/neomerx/cors-psr7/?branch=master)
+[![Build Status](https://travis-ci.org/neomerx/cors-psr7.svg?branch=master)](https://travis-ci.org/neomerx/cors-psr7)
+[![HHVM](https://img.shields.io/hhvm/neomerx/cors-psr7.svg)](https://travis-ci.org/neomerx/cors-psr7)
+[![License](https://img.shields.io/packagist/l/neomerx/cors-psr7.svg)](https://packagist.org/packages/neomerx/cors-psr7)
 
 ## Description
 
@@ -56,7 +61,6 @@ class CorsMiddleware
                 
                 // add CORS headers to Response $response
                 ...
-                
                 return $response;
         }
     }
@@ -66,7 +70,7 @@ class CorsMiddleware
 ## Testing
 
 ```
-composer phpcs && composer test
+composer test
 ```
 
 ## Questions?
@@ -78,6 +82,10 @@ Do not hesitate to contact us on [![Gitter](https://badges.gitter.im/Join%20Chat
 If you have spotted any compliance issues with the [CORS Recommendation](http://www.w3.org/TR/cors/) please post an [issue](https://github.com/neomerx/cors-psr7/issues). Pull requests for documentation and code improvements (PSR-2, tests) are welcome.
 
 Current tasks are managed with [Waffle.io](https://waffle.io/neomerx/cors-psr7).
+
+## Versioning
+
+This package is using [Semantic Versioning](http://semver.org/).
 
 ## License
 
