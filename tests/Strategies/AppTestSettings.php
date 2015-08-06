@@ -76,7 +76,8 @@ class AppTestSettings extends Settings
      * @inheritdoc
      */
     public static $exposedHeaders = [
-        'Content-Type',
-        'X-Custom-Header',
+        'Content-Type'      => true,
+        'X-Custom-Header'   => true,
+        'X-Disabled-Header' => null,
     ];
 }

@@ -108,8 +108,7 @@ class SettingsTest extends BaseTestCase
             AppTestSettings::$isUsingCredentials = $originalValue;
         }
 
-        $exposedHeaders = AppTestSettings::$exposedHeaders;
-        $this->assertNotEmpty($exposedHeaders);
+        $this->assertNotEmpty($exposedHeaders = ['Content-Type', 'X-Custom-Header']);
         $this->assertEquals($exposedHeaders, $this->appSettings->getResponseExposedHeaders($this->request));
     }
 

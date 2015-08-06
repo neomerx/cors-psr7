@@ -74,7 +74,7 @@ class Settings implements AnalysisStrategyInterface
     ];
 
     /**
-     * A list of allowed request headers (lower-cased). BValue `true` enables and value `null` disables header.
+     * A list of allowed request headers (lower-cased). Value `true` enables and value `null` disables header.
      *
      * For example,
      *
@@ -89,12 +89,14 @@ class Settings implements AnalysisStrategyInterface
 
     /**
      * A list of headers (case insensitive) which will be made accessible to user agent (browser) in response.
+     * Value `true` enables and value `null` disables header.
      *
      * For example,
      *
      * public static $exposedHeaders = [
-     *     'Content-Type',
-     *     'X-Custom-Response-Header',
+     *     'Content-Type'             => true,
+     *     'X-Custom-Response-Header' => true,
+     *     'X-Disabled-Header'        => null,
      * ];
      *
      * @var string[]
@@ -251,7 +253,7 @@ class Settings implements AnalysisStrategyInterface
      */
     public function getResponseExposedHeaders(RequestInterface $request)
     {
-        return static::$exposedHeaders;
+        return $this->getEnabledItems(static::$exposedHeaders);
     }
 
     /**
