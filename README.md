@@ -67,6 +67,12 @@ class CorsMiddleware
 }
 ```
 
+## Install
+
+```
+composer require neomerx/cors-psr7
+```
+
 ## Testing
 
 ```
