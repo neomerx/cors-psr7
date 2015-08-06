@@ -85,6 +85,7 @@ class Analyzer implements AnalyzerInterface
         $serverOrigin = $this->factory->createParsedUrl($this->strategy->getServerOrigin());
 
         // Check of Host header is strongly encouraged by #6.3
+        // Header 'Host' must present rfc2616 14.23
         if ($this->isSameHost($request, $serverOrigin) === false) {
             return $this->createResult(AnalysisResultInterface::TYPE_BAD_REQUEST, $headers);
         }
@@ -138,7 +139,7 @@ class Analyzer implements AnalyzerInterface
     }
 
     /**
-     * Analyze request as simple CORS or/and actual CORS request (#6.2.3 - #6.2.10).
+     * Analyze request as CORS pre-flight request (#6.2.3 - #6.2.10).
      *
      * @param RequestInterface   $request
      * @param ParsedUrlInterface $requestOrigin
@@ -221,8 +222,6 @@ class Analyzer implements AnalyzerInterface
      */
     private function isSameHost(RequestInterface $request, ParsedUrlInterface $serverOrigin)
     {
-        // Header 'Host' must present rfc2616 14.23
-
         $hostHeaderValue = $request->getHeader(CorsRequestHeaders::HOST);
         $hostUrl = empty($hostHeaderValue) === true ? null : $this->factory->createParsedUrl($hostHeaderValue[0]);
 
