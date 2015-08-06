@@ -45,7 +45,7 @@ class Analyzer implements AnalyzerInterface
     ];
 
     /**
-     * @var array
+     * @var string[]
      */
     private $simpleHeadersExclContentType = [
         SimpleRequestHeaders::ACCEPT,
@@ -84,14 +84,12 @@ class Analyzer implements AnalyzerInterface
 
         $serverOrigin = $this->factory->createParsedUrl($this->strategy->getServerOrigin());
 
-        // Check of Host header is strongly encouraged by 6.3
+        // Check of Host header is strongly encouraged by #6.3
         if ($this->isSameHost($request, $serverOrigin) === false) {
             return $this->createResult(AnalysisResultInterface::TYPE_BAD_REQUEST, $headers);
         }
 
-        // Request handlers for non-CORS, simple CORS, actual CORS and pre-flight requests have some common part
-        // 6.1.1 - 6.1.2 and 6.2.1 - 6.2.2
-
+        // Request handlers have common part (#6.1.1 - #6.1.2 and #6.2.1 - #6.2.2)
         // Header 'Origin' might be omitted for same-origin requests
         $requestOrigin = $this->getOrigin($request);
         if ($requestOrigin === null ||
@@ -102,8 +100,8 @@ class Analyzer implements AnalyzerInterface
         }
 
         // Since this point handlers have their own path for
-        // - simple CORS and actual CORS request (6.1.3 - 6.1.4)
-        // - pre-flight request (6.2.3 - 6.2.10)
+        // - simple CORS and actual CORS request (#6.1.3 - #6.1.4)
+        // - pre-flight request (#6.2.3 - #6.2.10)
 
         if ($request->getMethod() === self::PRE_FLIGHT_METHOD) {
             return $this->analyzeAsPreFlight($request, $requestOrigin);
@@ -113,24 +111,24 @@ class Analyzer implements AnalyzerInterface
     }
 
     /**
-     * Analyze request as simple CORS or/and actual CORS request (6.1.3 - 6.1.4).
+     * Analyze request as simple CORS or/and actual CORS request (#6.1.3 - #6.1.4).
      *
      * @param RequestInterface   $request
      * @param ParsedUrlInterface $requestOrigin
      *
      * @return AnalysisResultInterface
      */
-    private function analyzeAsRequest(RequestInterface $request, ParsedUrlInterface $requestOrigin)
+    protected function analyzeAsRequest(RequestInterface $request, ParsedUrlInterface $requestOrigin)
     {
         $headers = [];
 
-        // 6.1.3
+        // #6.1.3
         $headers[CorsResponseHeaders::ALLOW_ORIGIN] = $requestOrigin->getOrigin();
         if ($this->strategy->isRequestCredentialsSupported($request) === true) {
             $headers[CorsResponseHeaders::ALLOW_CREDENTIALS] = CorsResponseHeaders::VALUE_ALLOW_CREDENTIALS_TRUE;
         }
 
-        // 6.1.4
+        // #6.1.4
         $exposedHeaders = $this->strategy->getResponseExposedHeaders($request);
         if (empty($exposedHeaders) === false) {
             $headers[CorsResponseHeaders::EXPOSE_HEADERS] = $exposedHeaders;
@@ -140,21 +138,22 @@ class Analyzer implements AnalyzerInterface
     }
 
     /**
-     * Analyze request as simple CORS or/and actual CORS request (6.2.3 - 6.2.10).
+     * Analyze request as simple CORS or/and actual CORS request (#6.2.3 - #6.2.10).
      *
      * @param RequestInterface   $request
      * @param ParsedUrlInterface $requestOrigin
      *
      * @return AnalysisResultInterface
+     *
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    private function analyzeAsPreFlight(RequestInterface $request, ParsedUrlInterface $requestOrigin)
+    protected function analyzeAsPreFlight(RequestInterface $request, ParsedUrlInterface $requestOrigin)
     {
-        $headers = [];
-
-        // 6.2.3
+        // #6.2.3
         $requestMethod = $request->getHeader(CorsRequestHeaders::METHOD);
         if (empty($requestMethod) === true) {
-            return $this->createResult(AnalysisResultInterface::TYPE_REQUEST_OUT_OF_CORS_SCOPE, $headers);
+            return $this->createResult(AnalysisResultInterface::TYPE_REQUEST_OUT_OF_CORS_SCOPE);
         } else {
             $requestMethod = $requestMethod[0];
         }
@@ -163,7 +162,7 @@ class Analyzer implements AnalyzerInterface
 
         /** @var string $requestMethod */
 
-        // 6.2.4
+        // #6.2.4
         /** @var string[] $requestHeaders */
         $requestHeaders = $request->getHeader(CorsRequestHeaders::HEADERS);
         if (empty($requestHeaders) === false) {
@@ -175,32 +174,35 @@ class Analyzer implements AnalyzerInterface
             }, $requestHeaders);
         }
 
-        // 6.2.5
-        // 6.2.6
+        // #6.2.5
+        // #6.2.6
         if ($this->strategy->isRequestMethodSupported($requestMethod) === false ||
             $this->strategy->isRequestAllHeadersSupported($requestHeaders) === false) {
-            return $this->createResult(AnalysisResultInterface::TYPE_PRE_FLIGHT_REQUEST, $headers);
+            return $this->createResult(AnalysisResultInterface::TYPE_PRE_FLIGHT_REQUEST);
         }
 
-        // 6.2.7
+        // pre-flight response headers
+        $headers = [];
+
+        // #6.2.7
         $headers[CorsResponseHeaders::ALLOW_ORIGIN] = $requestOrigin->getOrigin();
         if ($this->strategy->isRequestCredentialsSupported($request) === true) {
             $headers[CorsResponseHeaders::ALLOW_CREDENTIALS] = CorsResponseHeaders::VALUE_ALLOW_CREDENTIALS_TRUE;
         }
 
-        // 6.2.8
+        // #6.2.8
         if ($this->strategy->isPreFlightCanBeCached($request) === true) {
             $headers[CorsResponseHeaders::MAX_AGE] = $this->strategy->getPreFlightCacheMaxAge($request);
         }
 
-        // 6.2.9
+        // #6.2.9
         $isSimpleMethod = isset($this->simpleMethods[$requestMethod]);
         if ($isSimpleMethod === false || $this->strategy->isForceAddAllowedMethodsToPreFlightResponse() === true) {
             $headers[CorsResponseHeaders::ALLOW_METHODS] =
                 $this->strategy->getRequestAllowedMethods($request, $requestMethod);
         }
 
-        // 6.2.10
+        // #6.2.10
         // Has only 'simple' headers excluding Content-Type
         $isSimpleExclCT = empty(array_intersect($requestHeaders, $this->simpleHeadersExclContentType));
         if ($isSimpleExclCT === false || $this->strategy->isForceAddAllowedHeadersToPreFlightResponse() === true) {
@@ -284,7 +286,7 @@ class Analyzer implements AnalyzerInterface
      *
      * @return AnalysisResultInterface
      */
-    private function createResult($type, array $headers)
+    private function createResult($type, array $headers = [])
     {
         return $this->factory->createAnalysisResult($type, $headers);
     }

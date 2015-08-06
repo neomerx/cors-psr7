@@ -235,15 +235,7 @@ class Settings implements AnalysisStrategyInterface
      */
     public function getRequestAllowedMethods(RequestInterface $request, $requestMethod)
     {
-        $methods = [];
-
-        foreach (static::$allowedMethods as $method => $enabled) {
-            if ($enabled === true) {
-                $methods[] = $method;
-            }
-        }
-
-        return implode(', ', $methods);
+        return implode(', ', $this->getEnabledItems(static::$allowedMethods));
     }
 
     /**
@@ -251,15 +243,7 @@ class Settings implements AnalysisStrategyInterface
      */
     public function getRequestAllowedHeaders(RequestInterface $request, array $requestHeaders)
     {
-        $headers = [];
-
-        foreach (static::$allowedHeaders as $header => $enabled) {
-            if ($enabled === true) {
-                $headers[] = $header;
-            }
-        }
-
-        return implode(', ', $headers);
+        return implode(', ', $this->getEnabledItems(static::$allowedHeaders));
     }
 
     /**
@@ -268,5 +252,25 @@ class Settings implements AnalysisStrategyInterface
     public function getResponseExposedHeaders(RequestInterface $request)
     {
         return static::$exposedHeaders;
+    }
+
+    /**
+     * Select only enabled items from $list.
+     *
+     * @param array $list
+     *
+     * @return array
+     */
+    protected function getEnabledItems(array $list)
+    {
+        $items = [];
+
+        foreach ($list as $item => $enabled) {
+            if ($enabled === true) {
+                $items[] = $item;
+            }
+        }
+
+        return $items;
     }
 }

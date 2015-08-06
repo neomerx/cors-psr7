@@ -71,7 +71,7 @@ class ParsedUrlTest extends BaseTestCase
      */
     public function testParseInvalidString()
     {
-        $this->getUrlFromString('//host:80');
+        $this->getUrlFromString('http://:80');
     }
 
     /**

@@ -138,7 +138,7 @@ interface AnalysisStrategyInterface
      *
      * @param RequestInterface $request
      *
-     * @return \string[]
+     * @return string[]
      */
     public function getResponseExposedHeaders(RequestInterface $request);
 }
