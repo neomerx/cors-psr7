@@ -66,6 +66,14 @@ class Settings implements AnalysisStrategyInterface
      *     'DELETE' => true,
      * ];
      *
+     * Security Note: you have to remember CORS is not access control system and you should not expect all cross-origin
+     * requests will have pre-flights. For so-called 'simple' methods with so-called 'simple' headers request
+     * will be made without pre-flight. Thus you can not restrict such requests with CORS and should use other means.
+     * For example method 'GET' without any headers or with only 'simple' headers will not have pre-flight request so
+     * disabling it will not restrict access to resource(s).
+     *
+     * You can read more on 'simple' methods at http://www.w3.org/TR/cors/#simple-method
+     *
      * @var array
      */
     public static $allowedMethods = [
@@ -85,6 +93,14 @@ class Settings implements AnalysisStrategyInterface
      *     'content-type'            => true,
      *     'x-custom-request-header' => null,
      * ];
+     *
+     * Security Note: you have to remember CORS is not access control system and you should not expect all cross-origin
+     * requests will have pre-flights. For so-called 'simple' methods with so-called 'simple' headers request
+     * will be made without pre-flight. Thus you can not restrict such requests with CORS and should use other means.
+     * For example method 'GET' without any headers or with only 'simple' headers will not have pre-flight request so
+     * disabling it will not restrict access to resource(s).
+     *
+     * You can read more on 'simple' headers at http://www.w3.org/TR/cors/#simple-header
      *
      * @var array
      */
