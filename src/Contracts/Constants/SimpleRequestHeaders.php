@@ -17,6 +17,8 @@
  */
 
 /**
+ * Note: Header names must be lower-cased (it allows optimize their comparison).
+ *
  * @package Neomerx\Cors
  *
  * @see http://www.w3.org/TR/cors/#terminology
@@ -26,22 +28,22 @@ interface SimpleRequestHeaders
     /**
      * Header name
      */
-    const ACCEPT = 'Accept';
+    const ACCEPT = 'accept';
 
     /**
      * Header name
      */
-    const ACCEPT_LANGUAGE = 'Accept-Language';
+    const ACCEPT_LANGUAGE = 'accept-language';
 
     /**
      * Header name
      */
-    const CONTENT_LANGUAGE = 'Content-Language';
+    const CONTENT_LANGUAGE = 'content-language';
 
     /**
      * Header name
      */
-    const CONTENT_TYPE = 'Content-Type';
+    const CONTENT_TYPE = 'content-type';
 
     /**
      * With this media type header 'Content-Type' considered as simple

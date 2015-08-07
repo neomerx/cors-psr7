@@ -20,12 +20,13 @@ use \Mockery;
 use \Mockery\MockInterface;
 use \Neomerx\Cors\Analyzer;
 use \InvalidArgumentException;
-use Neomerx\Cors\Contracts\Constants\CorsResponseHeaders;
 use \Psr\Http\Message\RequestInterface;
 use \Neomerx\Cors\Contracts\AnalyzerInterface;
 use \Neomerx\Tests\Cors\Strategies\AppTestSettings;
 use \Neomerx\Cors\Contracts\AnalysisResultInterface;
 use \Neomerx\Cors\Contracts\Constants\CorsRequestHeaders;
+use \Neomerx\Cors\Contracts\Constants\CorsResponseHeaders;
+use \Neomerx\Cors\Contracts\Constants\SimpleRequestMethods;
 
 /**
  * NOTE: This test suite uses AppTestSettings and its static properties.
@@ -257,6 +258,53 @@ class AnalyzerTest extends BaseTestCase
     }
 
     /**
+     * Test valid CORS pre-flight request.
+     */
+    public function testValidPreFlightWithNoForceAddingHeaders()
+    {
+        $allowedOrigin      = $this->getFirstAllowedOriginFromSettings();
+        $allowedMethod      = $this->getFirstAllowedNotSimpleMethod();
+        $allowedHeadersList = $this->getAllowedHeadersList();
+        $this->theseHeadersWillBeGotOnce([
+            CorsRequestHeaders::HOST    => [$this->getServerHost()],
+            CorsRequestHeaders::ORIGIN  => [$allowedOrigin],
+            CorsRequestHeaders::METHOD  => [$allowedMethod],
+            CorsRequestHeaders::HEADERS => [$allowedHeadersList],
+        ]);
+
+        $this->existenceOfTheseHeadersWillBeCheckedOnce([
+            CorsRequestHeaders::ORIGIN => true,
+        ]);
+
+        $this->thisMethodWillBeGotOnce('OPTIONS');
+
+        $maxAge            = AppTestSettings::$preFlightCacheMaxAge;
+        $isForceAddMethods = AppTestSettings::$isForceAddMethods;
+        $isForceAddHeaders = AppTestSettings::$isForceAddHeaders;
+        try {
+            AppTestSettings::$preFlightCacheMaxAge = 60;
+            AppTestSettings::$isForceAddMethods = false;
+            AppTestSettings::$isForceAddHeaders = false;
+
+            $result = $this->analyzer->analyze($this->request);
+        } finally {
+            AppTestSettings::$preFlightCacheMaxAge = $maxAge;
+            AppTestSettings::$isForceAddMethods    = $isForceAddMethods;
+            AppTestSettings::$isForceAddHeaders    = $isForceAddHeaders;
+        }
+
+        $this->assertEquals(AnalysisResultInterface::TYPE_PRE_FLIGHT_REQUEST, $result->getRequestType());
+        $this->assertEquals([
+            CorsResponseHeaders::ALLOW_ORIGIN      => $allowedOrigin,
+            CorsResponseHeaders::ALLOW_CREDENTIALS => CorsResponseHeaders::VALUE_ALLOW_CREDENTIALS_TRUE,
+            CorsResponseHeaders::VARY              => CorsRequestHeaders::ORIGIN,
+            CorsResponseHeaders::MAX_AGE           => 60,
+            CorsResponseHeaders::ALLOW_METHODS     => 'GET, POST, DELETE',
+            CorsResponseHeaders::ALLOW_HEADERS     => 'content-type, x-enabled-custom-header',
+        ], $result->getResponseHeaders());
+    }
+
+    /**
      * @param array $headers
      *
      * @return void
@@ -344,6 +392,25 @@ class AnalyzerTest extends BaseTestCase
     {
         foreach (AppTestSettings::$allowedMethods as $method => $allowed) {
             if ($allowed === true) {
+                return $method;
+            }
+        }
+
+        throw new InvalidArgumentException('Allowed Methods settings');
+    }
+
+    /**
+     * @return string
+     */
+    private function getFirstAllowedNotSimpleMethod()
+    {
+        $simpleMethods = [
+            SimpleRequestMethods::GET,
+            SimpleRequestMethods::HEAD,
+            SimpleRequestMethods::POST,
+        ];
+        foreach (AppTestSettings::$allowedMethods as $method => $allowed) {
+            if ($allowed === true && in_array($method, $simpleMethods) === false) {
                 return $method;
             }
         }

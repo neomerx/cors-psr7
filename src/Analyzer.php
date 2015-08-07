@@ -74,6 +74,18 @@ class Analyzer implements AnalyzerInterface
     }
 
     /**
+     * Create analyzer instance.
+     *
+     * @param AnalysisStrategyInterface $strategy
+     *
+     * @return AnalyzerInterface
+     */
+    public static function instance(AnalysisStrategyInterface $strategy)
+    {
+        return static::getFactory()->createAnalyzer($strategy);
+    }
+
+    /**
      * @inheritdoc
      *
      * @see http://www.w3.org/TR/cors/#resource-processing-model
@@ -165,16 +177,7 @@ class Analyzer implements AnalyzerInterface
         /** @var string $requestMethod */
 
         // #6.2.4
-        /** @var string[] $requestHeaders */
-        $requestHeaders = $request->getHeader(CorsRequestHeaders::HEADERS);
-        if (empty($requestHeaders) === false) {
-            // after explode header names might have spaces in the beginnings and ends...
-            $requestHeaders = explode(CorsRequestHeaders::HEADERS_SEPARATOR, $requestHeaders[0]);
-            // ... so trim the spaces
-            $requestHeaders = array_map(function ($headerName) {
-                return trim($headerName);
-            }, $requestHeaders);
-        }
+        $requestHeaders = $this->getRequestedHeadersInLowerCase($request);
 
         // #6.2.5
         // #6.2.6
@@ -208,7 +211,7 @@ class Analyzer implements AnalyzerInterface
 
         // #6.2.10
         // Has only 'simple' headers excluding Content-Type
-        $isSimpleExclCT = empty(array_intersect($requestHeaders, $this->simpleHeadersExclContentType));
+        $isSimpleExclCT = empty(array_diff($requestHeaders, $this->simpleHeadersExclContentType));
         if ($isSimpleExclCT === false || $this->strategy->isForceAddAllowedHeadersToPreFlightResponse() === true) {
             $headers[CorsResponseHeaders::ALLOW_HEADERS] =
                 $this->strategy->getRequestAllowedHeaders($request, $requestHeaders);
@@ -218,12 +221,32 @@ class Analyzer implements AnalyzerInterface
     }
 
     /**
+     * @param RequestInterface $request
+     *
+     * @return string[]
+     */
+    protected function getRequestedHeadersInLowerCase(RequestInterface $request)
+    {
+        $requestHeaders = $request->getHeader(CorsRequestHeaders::HEADERS);
+        if (empty($requestHeaders) === false) {
+            // after explode header names might have spaces in the beginnings and ends...
+            $requestHeaders = explode(CorsRequestHeaders::HEADERS_SEPARATOR, $requestHeaders[0]);
+            // ... so trim the spaces and convert values to lower case
+            $requestHeaders = array_map(function ($headerName) {
+                return strtolower(trim($headerName));
+            }, $requestHeaders);
+        }
+
+        return $requestHeaders;
+    }
+
+    /**
      * @param RequestInterface   $request
      * @param ParsedUrlInterface $serverOrigin
      *
      * @return bool
      */
-    private function isSameHost(RequestInterface $request, ParsedUrlInterface $serverOrigin)
+    protected function isSameHost(RequestInterface $request, ParsedUrlInterface $serverOrigin)
     {
         $hostHeaderValue = $request->getHeader(CorsRequestHeaders::HOST);
         $hostUrl = empty($hostHeaderValue) === true ? null : $this->factory->createParsedUrl($hostHeaderValue[0]);
@@ -244,7 +267,7 @@ class Analyzer implements AnalyzerInterface
      *
      * @see http://tools.ietf.org/html/rfc6454#section-5
      */
-    private function isSameOrigin(ParsedUrlInterface $requestOrigin, ParsedUrlInterface $serverOrigin)
+    protected function isSameOrigin(ParsedUrlInterface $requestOrigin, ParsedUrlInterface $serverOrigin)
     {
         $isSameOrigin =
             $requestOrigin->isHostEqual($serverOrigin) === true &&
@@ -260,7 +283,7 @@ class Analyzer implements AnalyzerInterface
      *
      * @return bool
      */
-    private function isCrossOrigin(ParsedUrlInterface $requestOrigin, ParsedUrlInterface $serverOrigin)
+    protected function isCrossOrigin(ParsedUrlInterface $requestOrigin, ParsedUrlInterface $serverOrigin)
     {
         return $this->isSameOrigin($requestOrigin, $serverOrigin) === false;
     }
@@ -270,7 +293,7 @@ class Analyzer implements AnalyzerInterface
      *
      * @return ParsedUrlInterface|null
      */
-    private function getOrigin(RequestInterface $request)
+    protected function getOrigin(RequestInterface $request)
     {
         $origin = null;
         if ($request->hasHeader(CorsRequestHeaders::ORIGIN) === true) {
@@ -288,21 +311,9 @@ class Analyzer implements AnalyzerInterface
      *
      * @return AnalysisResultInterface
      */
-    private function createResult($type, array $headers = [])
+    protected function createResult($type, array $headers = [])
     {
         return $this->factory->createAnalysisResult($type, $headers);
-    }
-
-    /**
-     * Create analyzer instance.
-     *
-     * @param AnalysisStrategyInterface $strategy
-     *
-     * @return AnalyzerInterface
-     */
-    public static function instance(AnalysisStrategyInterface $strategy)
-    {
-        return static::getFactory()->createAnalyzer($strategy);
     }
 
     /**
