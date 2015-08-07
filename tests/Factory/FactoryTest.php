@@ -21,7 +21,7 @@ use \Neomerx\Tests\Cors\BaseTestCase;
 use \Neomerx\Cors\Contracts\Factory\FactoryInterface;
 
 /**
- * @package Neomerx\Tests\JsonApi
+ * @package Neomerx\Tests\Cors
  */
 class FactoryTest extends BaseTestCase
 {

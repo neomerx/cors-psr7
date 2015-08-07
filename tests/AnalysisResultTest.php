@@ -20,7 +20,7 @@ use \Neomerx\Tests\Cors\Factory\FactoryTest;
 use \Neomerx\Cors\Contracts\AnalysisResultInterface;
 
 /**
- * @package Neomerx\Tests\JsonApi
+ * @package Neomerx\Tests\Cors
  */
 class AnalysisResultTest extends BaseTestCase
 {

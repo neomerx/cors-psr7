@@ -31,7 +31,7 @@ use \Neomerx\Cors\Contracts\Constants\SimpleRequestMethods;
 /**
  * NOTE: This test suite uses AppTestSettings and its static properties.
  *
- * @package Neomerx\Tests\JsonApi
+ * @package Neomerx\Tests\Cors
  *
  * @SuppressWarnings(PHPMD.TooManyMethods)
  */

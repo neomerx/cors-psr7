@@ -24,7 +24,7 @@ use \Neomerx\Cors\Contracts\Factory\FactoryInterface;
 use \Neomerx\Cors\Contracts\Constants\CorsResponseHeaders;
 
 /**
- * @package Neomerx\Tests\JsonApi
+ * @package Neomerx\Tests\Cors
  */
 class SettingsTest extends BaseTestCase
 {

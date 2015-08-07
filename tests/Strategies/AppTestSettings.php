@@ -23,7 +23,7 @@ use \Neomerx\Cors\Contracts\Constants\CorsResponseHeaders;
  * NOTE: This class and its static properties are used by more than 1 test.
  *       If you change them in tests please don't forget to revert values back.
  *
- * @package Neomerx\Tests\JsonApi
+ * @package Neomerx\Tests\Cors
  */
 class AppTestSettings extends Settings
 {

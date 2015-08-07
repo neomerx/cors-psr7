@@ -20,7 +20,7 @@ use \Mockery;
 use \PHPUnit_Framework_TestCase;
 
 /**
- * @package Neomerx\Tests\JsonApi
+ * @package Neomerx\Tests\Cors
  */
 abstract class BaseTestCase extends PHPUnit_Framework_TestCase
 {

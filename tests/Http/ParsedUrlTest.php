@@ -21,7 +21,7 @@ use \Neomerx\Tests\Cors\Factory\FactoryTest;
 use \Neomerx\Cors\Contracts\Http\ParsedUrlInterface;
 
 /**
- * @package Neomerx\Tests\JsonApi
+ * @package Neomerx\Tests\Cors
  */
 class ParsedUrlTest extends BaseTestCase
 {
