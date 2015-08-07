@@ -41,8 +41,11 @@ class CorsMiddleware
         $cors = Analyzer::instance($this->getCorsSettings())->analyze($request);
         
         switch ($cors->getRequestType()) {
-            case AnalysisResultInterface::TYPE_BAD_REQUEST:
-                // return 400 HTTP error
+            case AnalysisResultInterface::ERR_NO_HOST_HEADER:
+            case AnalysisResultInterface::ERR_ORIGIN_NOT_ALLOWED:
+            case AnalysisResultInterface::ERR_METHOD_NOT_SUPPORTED:
+            case AnalysisResultInterface::ERR_HEADERS_NOT_SUPPORTED:
+                // return 4XX HTTP error
                 return ...;
 
             case AnalysisResultInterface::TYPE_PRE_FLIGHT_REQUEST:

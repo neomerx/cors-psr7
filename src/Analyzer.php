@@ -92,23 +92,24 @@ class Analyzer implements AnalyzerInterface
      */
     public function analyze(RequestInterface $request)
     {
-        $headers  = [];
-
         $serverOrigin = $this->factory->createParsedUrl($this->strategy->getServerOrigin());
 
         // check 'Host' request
         if ($this->strategy->isCheckHost() === true && $this->isSameHost($request, $serverOrigin) === false) {
-            return $this->createResult(AnalysisResultInterface::TYPE_BAD_REQUEST, $headers);
+            return $this->createResult(AnalysisResultInterface::ERR_NO_HOST_HEADER);
         }
 
         // Request handlers have common part (#6.1.1 - #6.1.2 and #6.2.1 - #6.2.2)
-        // Header 'Origin' might be omitted for same-origin requests
+
+        // #6.1.1 and #6.2.1
         $requestOrigin = $this->getOrigin($request);
-        if ($requestOrigin === null ||
-            $this->isCrossOrigin($requestOrigin, $serverOrigin) === false ||
-            $this->strategy->isRequestOriginAllowed($requestOrigin) === false
-        ) {
-            return $this->createResult(AnalysisResultInterface::TYPE_REQUEST_OUT_OF_CORS_SCOPE, $headers);
+        if ($requestOrigin === null || $this->isCrossOrigin($requestOrigin, $serverOrigin) === false) {
+            return $this->createResult(AnalysisResultInterface::TYPE_REQUEST_OUT_OF_CORS_SCOPE);
+        }
+
+        // #6.1.2 and #6.2.2
+        if ($this->strategy->isRequestOriginAllowed($requestOrigin) === false) {
+            return $this->createResult(AnalysisResultInterface::ERR_ORIGIN_NOT_ALLOWED);
         }
 
         // Since this point handlers have their own path for
@@ -180,10 +181,13 @@ class Analyzer implements AnalyzerInterface
         $requestHeaders = $this->getRequestedHeadersInLowerCase($request);
 
         // #6.2.5
+        if ($this->strategy->isRequestMethodSupported($requestMethod) === false) {
+            return $this->createResult(AnalysisResultInterface::ERR_METHOD_NOT_SUPPORTED);
+        }
+
         // #6.2.6
-        if ($this->strategy->isRequestMethodSupported($requestMethod) === false ||
-            $this->strategy->isRequestAllHeadersSupported($requestHeaders) === false) {
-            return $this->createResult(AnalysisResultInterface::TYPE_PRE_FLIGHT_REQUEST);
+        if ($this->strategy->isRequestAllHeadersSupported($requestHeaders) === false) {
+            return $this->createResult(AnalysisResultInterface::ERR_HEADERS_NOT_SUPPORTED);
         }
 
         // pre-flight response headers

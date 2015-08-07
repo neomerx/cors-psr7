@@ -30,11 +30,20 @@ interface AnalysisResultInterface
     /** Actual request */
     const TYPE_ACTUAL_REQUEST = 2;
 
-    /** Actual request */
-    const TYPE_BAD_REQUEST = 3;
+    /** Request origin is not allowed */
+    const ERR_ORIGIN_NOT_ALLOWED = 3;
+
+    /** Request method is not supported */
+    const ERR_METHOD_NOT_SUPPORTED = 4;
+
+    /** Request headers are not supported */
+    const ERR_HEADERS_NOT_SUPPORTED = 5;
+
+    /** No Host header in request */
+    const ERR_NO_HOST_HEADER = 6;
 
     /**
-     * Get request type (one of TYPE_XXX constants).
+     * Get request type.
      *
      * @return int
      */

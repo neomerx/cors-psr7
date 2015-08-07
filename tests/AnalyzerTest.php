@@ -81,7 +81,7 @@ class AnalyzerTest extends BaseTestCase
 
         $result = $this->analyzer->analyze($this->request);
 
-        $this->assertEquals(AnalysisResultInterface::TYPE_BAD_REQUEST, $result->getRequestType());
+        $this->assertEquals(AnalysisResultInterface::ERR_NO_HOST_HEADER, $result->getRequestType());
         $this->assertEquals([], $result->getResponseHeaders());
     }
 
@@ -102,6 +102,26 @@ class AnalyzerTest extends BaseTestCase
         $result = $this->analyzer->analyze($this->request);
 
         $this->assertEquals(AnalysisResultInterface::TYPE_REQUEST_OUT_OF_CORS_SCOPE, $result->getRequestType());
+        $this->assertEquals([], $result->getResponseHeaders());
+    }
+
+    /**
+     * Test not CORS request (not allowed Origin header).
+     */
+    public function testNotCorsNotAllowedOrigin()
+    {
+        $this->theseHeadersWillBeGotOnce([
+            CorsRequestHeaders::HOST   => [$this->getServerHost()],
+            CorsRequestHeaders::ORIGIN => ['http://some-devil-host.com'],
+        ]);
+
+        $this->existenceOfTheseHeadersWillBeCheckedOnce([
+            CorsRequestHeaders::ORIGIN => true,
+        ]);
+
+        $result = $this->analyzer->analyze($this->request);
+
+        $this->assertEquals(AnalysisResultInterface::ERR_ORIGIN_NOT_ALLOWED, $result->getRequestType());
         $this->assertEquals([], $result->getResponseHeaders());
     }
 
@@ -179,7 +199,7 @@ class AnalyzerTest extends BaseTestCase
 
         $result = $this->analyzer->analyze($this->request);
 
-        $this->assertEquals(AnalysisResultInterface::TYPE_PRE_FLIGHT_REQUEST, $result->getRequestType());
+        $this->assertEquals(AnalysisResultInterface::ERR_METHOD_NOT_SUPPORTED, $result->getRequestType());
         $this->assertEquals([], $result->getResponseHeaders());
     }
 
@@ -206,7 +226,7 @@ class AnalyzerTest extends BaseTestCase
 
         $result = $this->analyzer->analyze($this->request);
 
-        $this->assertEquals(AnalysisResultInterface::TYPE_PRE_FLIGHT_REQUEST, $result->getRequestType());
+        $this->assertEquals(AnalysisResultInterface::ERR_HEADERS_NOT_SUPPORTED, $result->getRequestType());
         $this->assertEquals([], $result->getResponseHeaders());
     }
 

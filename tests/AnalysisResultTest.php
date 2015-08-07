@@ -30,7 +30,7 @@ class AnalysisResultTest extends BaseTestCase
     public function testCreate()
     {
         $headers     = ['header-name' => ['header-value1']];
-        $requestType = AnalysisResultInterface::TYPE_BAD_REQUEST;
+        $requestType = AnalysisResultInterface::ERR_NO_HOST_HEADER;
 
         $this->assertNotNull($result = FactoryTest::createFactory()->createAnalysisResult($requestType, $headers));
 
