@@ -84,9 +84,8 @@ class Analyzer implements AnalyzerInterface
 
         $serverOrigin = $this->factory->createParsedUrl($this->strategy->getServerOrigin());
 
-        // Check of Host header is strongly encouraged by #6.3
-        // Header 'Host' must present rfc2616 14.23
-        if ($this->isSameHost($request, $serverOrigin) === false) {
+        // check 'Host' request
+        if ($this->strategy->isCheckHost() === true && $this->isSameHost($request, $serverOrigin) === false) {
             return $this->createResult(AnalysisResultInterface::TYPE_BAD_REQUEST, $headers);
         }
 

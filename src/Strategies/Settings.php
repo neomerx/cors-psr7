@@ -140,6 +140,13 @@ class Settings implements AnalysisStrategyInterface
     public static $isForceAddHeaders = false;
 
     /**
+     * If request 'Host' header should be checked against server's origin.
+     *
+     * @var bool
+     */
+    public static $isCheckHost = false;
+
+    /**
      * Constructor.
      */
     public function __construct()
@@ -262,6 +269,14 @@ class Settings implements AnalysisStrategyInterface
     public function getResponseExposedHeaders(RequestInterface $request)
     {
         return $this->getEnabledItems(static::$exposedHeaders);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isCheckHost()
+    {
+        return static::$isCheckHost;
     }
 
     /**

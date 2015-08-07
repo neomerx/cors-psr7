@@ -109,6 +109,16 @@ class SettingsTest extends BaseTestCase
             AppTestSettings::$isUsingCredentials = $originalValue;
         }
 
+        $originalValue = AppTestSettings::$isCheckHost;
+        try {
+            AppTestSettings::$isCheckHost = true;
+            $this->assertTrue($this->appSettings->isCheckHost());
+            AppTestSettings::$isCheckHost = false;
+            $this->assertFalse($this->appSettings->isCheckHost());
+        } finally {
+            AppTestSettings::$isCheckHost = $originalValue;
+        }
+
         $this->assertNotEmpty($exposedHeaders = ['Content-Type', 'X-Custom-Header']);
         $this->assertEquals($exposedHeaders, $this->appSettings->getResponseExposedHeaders($this->request));
     }

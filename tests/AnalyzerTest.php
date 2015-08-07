@@ -31,6 +31,8 @@ use \Neomerx\Cors\Contracts\Constants\CorsRequestHeaders;
  * NOTE: This test suite uses AppTestSettings and its static properties.
  *
  * @package Neomerx\Tests\JsonApi
+ *
+ * @SuppressWarnings(PHPMD.TooManyMethods)
  */
 class AnalyzerTest extends BaseTestCase
 {
@@ -53,6 +55,18 @@ class AnalyzerTest extends BaseTestCase
 
         $this->request  = Mockery::mock(RequestInterface::class);
         $this->assertNotNull($this->analyzer = Analyzer::instance(new AppTestSettings()));
+
+        AppTestSettings::$isCheckHost = true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function tearDown()
+    {
+        parent::tearDown();
+
+        AppTestSettings::$isCheckHost = false;
     }
 
     /**

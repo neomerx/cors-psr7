@@ -141,4 +141,13 @@ interface AnalysisStrategyInterface
      * @return string[]
      */
     public function getResponseExposedHeaders(RequestInterface $request);
+
+    /**
+     * If request 'Host' header should be checked against server's origin.
+     * Check of Host header is strongly encouraged by #6.3 CORS.
+     * Header 'Host' must present for all requests rfc2616 14.23
+     *
+     * @return bool
+     */
+    public function isCheckHost();
 }
