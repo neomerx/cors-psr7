@@ -7,7 +7,7 @@
 
 ## Description
 
-This package has framework agnostic [Cross-Origin Resource Sharing](www.w3.org/TR/cors/) (CORS) implementation. It is complaint with [PSR-7](http://www.php-fig.org/psr/psr-7/) HTTP message interfaces.
+This package has framework agnostic [Cross-Origin Resource Sharing](http://www.w3.org/TR/cors/) (CORS) implementation. It is complaint with [PSR-7](http://www.php-fig.org/psr/psr-7/) HTTP message interfaces.
 
 Why this package?
 
