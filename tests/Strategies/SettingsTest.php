@@ -18,6 +18,7 @@
 
 use \Mockery;
 use \Neomerx\Tests\Cors\BaseTestCase;
+use \Neomerx\Cors\Strategies\Settings;
 use \Psr\Http\Message\RequestInterface;
 use \Neomerx\Tests\Cors\Factory\FactoryTest;
 use \Neomerx\Cors\Contracts\Factory\FactoryInterface;
@@ -28,10 +29,19 @@ use \Neomerx\Cors\Contracts\Constants\CorsResponseHeaders;
  */
 class SettingsTest extends BaseTestCase
 {
+    /** Value for scheme */
+    const SCHEME = 'http';
+
+    /** Value for host */
+    const HOST = 'example.com';
+
+    /** Value for port */
+    const PORT = '123';
+
     /**
-     * @var AppTestSettings
+     * @var Settings
      */
-    private $appSettings;
+    private $settings;
 
     /**
      * @var RequestInterface
@@ -50,9 +60,40 @@ class SettingsTest extends BaseTestCase
     {
         parent::setUp();
 
-        $this->appSettings = new AppTestSettings();
-        $this->factory     = FactoryTest::createFactory();
-        $this->request     = Mockery::mock(RequestInterface::class);
+        $this->settings = new Settings();
+        $sameSettings = $this->settings->setServerOrigin([
+            'scheme' => self::SCHEME,
+            'host'   => self::HOST,
+            'port'   => self::PORT,
+        ])->setRequestAllowedOrigins([
+            'http://good.example.com:321'                => true,
+            'http://evil.example.com:123'                => null,
+            CorsResponseHeaders::VALUE_ALLOW_ORIGIN_ALL  => null,
+            CorsResponseHeaders::VALUE_ALLOW_ORIGIN_NULL => null,
+        ])->setRequestAllowedMethods([
+            'GET'    => true,
+            'PATCH'  => null,
+            'POST'   => true,
+            'PUT'    => null,
+            'DELETE' => true,
+        ])->setRequestAllowedHeaders([
+            'content-type'            => true,
+            'some-disabled-header'    => null,
+            'x-enabled-custom-header' => true,
+        ])->setResponseExposedHeaders([
+            'Content-Type'      => true,
+            'X-Custom-Header'   => true,
+            'X-Disabled-Header' => null,
+        ])->setRequestCredentialsSupported(false)
+            ->setPreFlightCacheMaxAge(0)
+            ->setForceAddAllowedMethodsToPreFlightResponse(true)
+            ->setForceAddAllowedHeadersToPreFlightResponse(true)
+            ->setCheckHost(true);
+
+        $this->assertSame($this->settings, $sameSettings);
+
+        $this->factory = FactoryTest::createFactory();
+        $this->request = Mockery::mock(RequestInterface::class);
     }
 
     /**
@@ -61,66 +102,41 @@ class SettingsTest extends BaseTestCase
     public function testSimpleGetSetSettings()
     {
         $this->assertEquals([
-            'scheme' => AppTestSettings::SCHEME,
-            'host'   => AppTestSettings::HOST,
-            'port'   => AppTestSettings::PORT,
-        ], $this->appSettings->getServerOrigin());
+            'scheme' => self::SCHEME,
+            'host'   => self::HOST,
+            'port'   => self::PORT,
+        ], $this->settings->getServerOrigin());
 
-        $originalValue = AppTestSettings::$preFlightCacheMaxAge;
-        try {
-            AppTestSettings::$preFlightCacheMaxAge = 0;
-            $this->assertEquals(0, $this->appSettings->getPreFlightCacheMaxAge($this->request));
-            $this->assertFalse($this->appSettings->isPreFlightCanBeCached($this->request));
+        $this->settings->setPreFlightCacheMaxAge(0);
+        $this->assertEquals(0, $this->settings->getPreFlightCacheMaxAge($this->request));
+        $this->assertFalse($this->settings->isPreFlightCanBeCached($this->request));
 
-            AppTestSettings::$preFlightCacheMaxAge = 1;
-            $this->assertEquals(1, $this->appSettings->getPreFlightCacheMaxAge($this->request));
-            $this->assertTrue($this->appSettings->isPreFlightCanBeCached($this->request));
-        } finally {
-            AppTestSettings::$preFlightCacheMaxAge = $originalValue;
-        }
+        $this->settings->setPreFlightCacheMaxAge(1);
+        $this->assertEquals(1, $this->settings->getPreFlightCacheMaxAge($this->request));
+        $this->assertTrue($this->settings->isPreFlightCanBeCached($this->request));
 
-        $originalValue = AppTestSettings::$isForceAddMethods;
-        try {
-            AppTestSettings::$isForceAddMethods = false;
-            $this->assertFalse($this->appSettings->isForceAddAllowedMethodsToPreFlightResponse());
-            AppTestSettings::$isForceAddMethods = true;
-            $this->assertTrue($this->appSettings->isForceAddAllowedMethodsToPreFlightResponse());
-        } finally {
-            AppTestSettings::$isForceAddMethods = $originalValue;
-        }
+        $this->settings->setForceAddAllowedMethodsToPreFlightResponse(false);
+        $this->assertFalse($this->settings->isForceAddAllowedMethodsToPreFlightResponse());
+        $this->settings->setForceAddAllowedMethodsToPreFlightResponse(true);
+        $this->assertTrue($this->settings->isForceAddAllowedMethodsToPreFlightResponse());
 
-        $originalValue = AppTestSettings::$isForceAddHeaders;
-        try {
-            AppTestSettings::$isForceAddHeaders = false;
-            $this->assertFalse($this->appSettings->isForceAddAllowedHeadersToPreFlightResponse());
-            AppTestSettings::$isForceAddHeaders = true;
-            $this->assertTrue($this->appSettings->isForceAddAllowedHeadersToPreFlightResponse());
-        } finally {
-            AppTestSettings::$isForceAddHeaders = $originalValue;
-        }
+        $this->settings->setForceAddAllowedHeadersToPreFlightResponse(false);
+        $this->assertFalse($this->settings->isForceAddAllowedHeadersToPreFlightResponse());
+        $this->settings->setForceAddAllowedHeadersToPreFlightResponse(true);
+        $this->assertTrue($this->settings->isForceAddAllowedHeadersToPreFlightResponse());
 
-        $originalValue = AppTestSettings::$isUsingCredentials;
-        try {
-            AppTestSettings::$isUsingCredentials = true;
-            $this->assertTrue($this->appSettings->isRequestCredentialsSupported($this->request));
-            AppTestSettings::$isUsingCredentials = false;
-            $this->assertFalse($this->appSettings->isRequestCredentialsSupported($this->request));
-        } finally {
-            AppTestSettings::$isUsingCredentials = $originalValue;
-        }
+        $this->settings->setRequestCredentialsSupported(true);
+        $this->assertTrue($this->settings->isRequestCredentialsSupported($this->request));
+        $this->settings->setRequestCredentialsSupported(false);
+        $this->assertFalse($this->settings->isRequestCredentialsSupported($this->request));
 
-        $originalValue = AppTestSettings::$isCheckHost;
-        try {
-            AppTestSettings::$isCheckHost = true;
-            $this->assertTrue($this->appSettings->isCheckHost());
-            AppTestSettings::$isCheckHost = false;
-            $this->assertFalse($this->appSettings->isCheckHost());
-        } finally {
-            AppTestSettings::$isCheckHost = $originalValue;
-        }
+        $this->settings->setCheckHost(true);
+        $this->assertTrue($this->settings->isCheckHost());
+        $this->settings->setCheckHost(false);
+        $this->assertFalse($this->settings->isCheckHost());
 
         $this->assertNotEmpty($exposedHeaders = ['Content-Type', 'X-Custom-Header']);
-        $this->assertEquals($exposedHeaders, $this->appSettings->getResponseExposedHeaders($this->request));
+        $this->assertEquals($exposedHeaders, $this->settings->getResponseExposedHeaders($this->request));
     }
 
     /**
@@ -128,21 +144,17 @@ class SettingsTest extends BaseTestCase
      */
     public function testRequestOriginAllowed()
     {
-        foreach (AppTestSettings::$allowedOrigins as $url => $enabled) {
-            // let's take origins from the settings directly
-            $requestOrigin = $this->factory->createParsedUrl($url);
-            $this->assertEquals($enabled, $this->appSettings->isRequestOriginAllowed($requestOrigin));
-        }
-
-        // and one more not from the white list
         $forbiddenOrigin = 'http://hax.com';
         $requestOrigin   = $this->factory->createParsedUrl($forbiddenOrigin);
-        $this->assertFalse($this->appSettings->isRequestOriginAllowed($requestOrigin));
+        $this->assertFalse($this->settings->isRequestOriginAllowed($requestOrigin));
 
-        // now enable all origins and check forbidden again
-        AppTestSettings::$allowedOrigins[CorsResponseHeaders::VALUE_ALLOW_ORIGIN_ALL] = true;
-        $this->assertTrue($this->appSettings->isRequestOriginAllowed($requestOrigin));
-        AppTestSettings::$allowedOrigins[CorsResponseHeaders::VALUE_ALLOW_ORIGIN_ALL] = null;
+        $forbiddenOrigin = 'http://evil.example.com:123';
+        $requestOrigin   = $this->factory->createParsedUrl($forbiddenOrigin);
+        $this->assertFalse($this->settings->isRequestOriginAllowed($requestOrigin));
+
+        $allowedOrigin = 'http://good.example.com:321';
+        $requestOrigin = $this->factory->createParsedUrl($allowedOrigin);
+        $this->assertTrue($this->settings->isRequestOriginAllowed($requestOrigin));
     }
 
     /**
@@ -150,12 +162,9 @@ class SettingsTest extends BaseTestCase
      */
     public function testRequestMethodSupported()
     {
-        foreach (AppTestSettings::$allowedMethods as $method => $enabled) {
-            $this->assertEquals($enabled, $this->appSettings->isRequestMethodSupported($method));
-        }
-
-        // and one more not from the white list
-        $this->assertFalse($this->appSettings->isRequestMethodSupported('X-DELETE'));
+        $this->assertTrue($this->settings->isRequestMethodSupported('POST'));
+        $this->assertFalse($this->settings->isRequestMethodSupported('PATCH'));
+        $this->assertFalse($this->settings->isRequestMethodSupported('X-DELETE'));
     }
 
     /**
@@ -163,19 +172,17 @@ class SettingsTest extends BaseTestCase
      */
     public function testRequestHeaderSupported()
     {
-        $allowedHeaders = array_filter(AppTestSettings::$allowedHeaders, function ($enabled) {
-            return $enabled === true;
-        });
-        $allowedHeaders = array_keys($allowedHeaders);
+        $allowedHeaders = [
+            'content-type',
+            'x-enabled-custom-header',
+        ];
+        $prohibitedHeaders = [
+            'some-disabled-header',
+        ];
 
-        $prohibitedHeaders = array_filter(AppTestSettings::$allowedHeaders, function ($enabled) {
-            return $enabled !== true;
-        });
-        $prohibitedHeaders = array_keys($prohibitedHeaders);
-
-        $this->assertTrue($this->appSettings->isRequestAllHeadersSupported($allowedHeaders));
-        $this->assertFalse($this->appSettings->isRequestAllHeadersSupported($prohibitedHeaders));
-        $this->assertFalse($this->appSettings->isRequestAllHeadersSupported(
+        $this->assertTrue($this->settings->isRequestAllHeadersSupported($allowedHeaders));
+        $this->assertFalse($this->settings->isRequestAllHeadersSupported($prohibitedHeaders));
+        $this->assertFalse($this->settings->isRequestAllHeadersSupported(
             array_merge($allowedHeaders, $prohibitedHeaders)
         ));
     }
@@ -185,7 +192,7 @@ class SettingsTest extends BaseTestCase
      */
     public function testRequestAllowedMethods()
     {
-        $this->assertEquals('GET, POST, DELETE', $this->appSettings->getRequestAllowedMethods($this->request, 'GET'));
+        $this->assertEquals('GET, POST, DELETE', $this->settings->getRequestAllowedMethods($this->request, 'GET'));
     }
 
     /**
@@ -195,7 +202,7 @@ class SettingsTest extends BaseTestCase
     {
         $this->assertEquals(
             'content-type, x-enabled-custom-header',
-            $this->appSettings->getRequestAllowedHeaders($this->request, [])
+            $this->settings->getRequestAllowedHeaders($this->request, [])
         );
     }
 }

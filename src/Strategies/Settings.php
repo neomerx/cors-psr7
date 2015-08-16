@@ -18,15 +18,15 @@
 
 use \Psr\Http\Message\RequestInterface;
 use \Neomerx\Cors\Contracts\Http\ParsedUrlInterface;
-use \Neomerx\Cors\Contracts\AnalysisStrategyInterface;
 use \Neomerx\Cors\Contracts\Constants\CorsResponseHeaders;
+use \Neomerx\Cors\Contracts\Strategies\SettingsStrategyInterface;
 
 /**
  * Implements strategy as a simple set of setting identical for all resources and requests.
  *
  * @package Neomerx\Cors
  */
-class Settings implements AnalysisStrategyInterface
+class Settings implements SettingsStrategyInterface
 {
     /**
      * @var string|array If specified as array (recommended for better performance) it should
@@ -34,7 +34,11 @@ class Settings implements AnalysisStrategyInterface
      *
      * @see http://php.net/manual/function.parse-url.php
      */
-    public static $serverOrigin;
+    private $serverOrigin = [
+        'scheme' => '',
+        'host'   => ParsedUrlInterface::DEFAULT_PORT,
+        'port'   => '',
+    ];
 
     /**
      * A list of allowed request origins (lower-cased, no trail slashes).
@@ -43,7 +47,7 @@ class Settings implements AnalysisStrategyInterface
      *
      * For example,
      *
-     * public static $allowedOrigins = [
+     * $allowedOrigins = [
      *     'http://example.com:123' => true,
      *     'http://evil.com'        => null,
      *     '*'                      => null,
@@ -51,14 +55,14 @@ class Settings implements AnalysisStrategyInterface
      *
      * @var array
      */
-    public static $allowedOrigins;
+    private $allowedOrigins = [];
 
     /**
      * A list of allowed request methods (case sensitive). Value `true` enables and value `null` disables method.
      *
      * For example,
      *
-     * public static $allowedMethods = [
+     * $allowedMethods = [
      *     'GET'    => true,
      *     'PATCH'  => true,
      *     'POST'   => true,
@@ -76,20 +80,14 @@ class Settings implements AnalysisStrategyInterface
      *
      * @var array
      */
-    public static $allowedMethods = [
-        'GET'    => true,
-        'PATCH'  => true,
-        'POST'   => true,
-        'PUT'    => true,
-        'DELETE' => true,
-    ];
+    private $allowedMethods = [];
 
     /**
      * A list of allowed request headers (lower-cased). Value `true` enables and value `null` disables header.
      *
      * For example,
      *
-     * public static $allowedHeaders = [
+     * $allowedHeaders = [
      *     'content-type'            => true,
      *     'x-custom-request-header' => null,
      * ];
@@ -104,7 +102,7 @@ class Settings implements AnalysisStrategyInterface
      *
      * @var array
      */
-    public static $allowedHeaders = [];
+    private $allowedHeaders = [];
 
     /**
      * A list of headers (case insensitive) which will be made accessible to user agent (browser) in response.
@@ -112,7 +110,7 @@ class Settings implements AnalysisStrategyInterface
      *
      * For example,
      *
-     * public static $exposedHeaders = [
+     * $exposedHeaders = [
      *     'Content-Type'             => true,
      *     'X-Custom-Response-Header' => true,
      *     'X-Disabled-Header'        => null,
@@ -120,21 +118,21 @@ class Settings implements AnalysisStrategyInterface
      *
      * @var string[]
      */
-    public static $exposedHeaders = [];
+    private $exposedHeaders = [];
 
     /**
      * If access with credentials is supported by the resource.
      *
      * @var bool
      */
-    public static $isUsingCredentials = true;
+    private $isUsingCredentials = false;
 
     /**
      * Pre-flight response cache max period in seconds.
      *
      * @var int
      */
-    public static $preFlightCacheMaxAge = 0;
+    private $preFlightCacheMaxAge = 0;
 
     /**
      * If allowed methods should be added to pre-flight response when 'simple' method is requested (see #6.2.9 CORS).
@@ -143,7 +141,7 @@ class Settings implements AnalysisStrategyInterface
      *
      * @var bool
      */
-    public static $isForceAddMethods = false;
+    private $isForceAddMethods = false;
 
     /**
      * If allowed headers should be added when request headers are 'simple' and
@@ -153,30 +151,31 @@ class Settings implements AnalysisStrategyInterface
      *
      * @var bool
      */
-    public static $isForceAddHeaders = false;
+    private $isForceAddHeaders = false;
 
     /**
      * If request 'Host' header should be checked against server's origin.
      *
      * @var bool
      */
-    public static $isCheckHost = false;
-
-    /**
-     * Constructor.
-     */
-    public function __construct()
-    {
-        assert('static::$serverOrigin !== null', 'Server origin URL must be specified');
-        assert('static::$allowedOrigins !== null', 'Allowed request origins must be specified');
-    }
+    private $isCheckHost = false;
 
     /**
      * @inheritdoc
      */
     public function getServerOrigin()
     {
-        return static::$serverOrigin;
+        return $this->serverOrigin;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setServerOrigin($origin)
+    {
+        $this->serverOrigin = $origin;
+
+        return $this;
     }
 
     /**
@@ -192,7 +191,17 @@ class Settings implements AnalysisStrategyInterface
      */
     public function getPreFlightCacheMaxAge(RequestInterface $request)
     {
-        return static::$preFlightCacheMaxAge;
+        return $this->preFlightCacheMaxAge;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setPreFlightCacheMaxAge($cacheMaxAge)
+    {
+        $this->preFlightCacheMaxAge = $cacheMaxAge;
+
+        return $this;
     }
 
     /**
@@ -200,7 +209,17 @@ class Settings implements AnalysisStrategyInterface
      */
     public function isForceAddAllowedMethodsToPreFlightResponse()
     {
-        return static::$isForceAddMethods;
+        return $this->isForceAddMethods;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setForceAddAllowedMethodsToPreFlightResponse($forceFlag)
+    {
+        $this->isForceAddMethods = $forceFlag;
+
+        return $this;
     }
 
     /**
@@ -208,7 +227,17 @@ class Settings implements AnalysisStrategyInterface
      */
     public function isForceAddAllowedHeadersToPreFlightResponse()
     {
-        return static::$isForceAddHeaders;
+        return $this->isForceAddHeaders;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setForceAddAllowedHeadersToPreFlightResponse($forceFlag)
+    {
+        $this->isForceAddHeaders = $forceFlag;
+
+        return $this;
     }
 
     /**
@@ -216,7 +245,17 @@ class Settings implements AnalysisStrategyInterface
      */
     public function isRequestCredentialsSupported(RequestInterface $request)
     {
-        return static::$isUsingCredentials;
+        return $this->isUsingCredentials;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setRequestCredentialsSupported($isSupported)
+    {
+        $this->isUsingCredentials = $isSupported;
+
+        return $this;
     }
 
     /**
@@ -225,11 +264,11 @@ class Settings implements AnalysisStrategyInterface
     public function isRequestOriginAllowed(ParsedUrlInterface $requestOrigin)
     {
         // check if all origins are allowed with '*'
-        $isAllowed = isset(static::$allowedOrigins[CorsResponseHeaders::VALUE_ALLOW_ORIGIN_ALL]);
+        $isAllowed = isset($this->allowedOrigins[CorsResponseHeaders::VALUE_ALLOW_ORIGIN_ALL]);
 
         if ($isAllowed === false) {
             $requestOriginStr = strtolower($requestOrigin->getOrigin());
-            $isAllowed        = isset(static::$allowedOrigins[$requestOriginStr]);
+            $isAllowed        = isset($this->allowedOrigins[$requestOriginStr]);
         }
 
         return $isAllowed;
@@ -238,9 +277,19 @@ class Settings implements AnalysisStrategyInterface
     /**
      * @inheritdoc
      */
+    public function setRequestAllowedOrigins(array $origins)
+    {
+        $this->allowedOrigins = $origins;
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function isRequestMethodSupported($method)
     {
-        $isAllowed = isset(static::$allowedMethods[$method]);
+        $isAllowed = isset($this->allowedMethods[$method]);
 
         return $isAllowed;
     }
@@ -254,7 +303,7 @@ class Settings implements AnalysisStrategyInterface
 
         foreach ($headers as $header) {
             $header = strtolower($header);
-            if (isset(static::$allowedHeaders[$header]) === false) {
+            if (isset($this->allowedHeaders[$header]) === false) {
                 $allSupported = false;
                 break;
             }
@@ -268,7 +317,17 @@ class Settings implements AnalysisStrategyInterface
      */
     public function getRequestAllowedMethods(RequestInterface $request, $requestMethod)
     {
-        return implode(', ', $this->getEnabledItems(static::$allowedMethods));
+        return implode(', ', $this->getEnabledItems($this->allowedMethods));
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setRequestAllowedMethods(array $methods)
+    {
+        $this->allowedMethods = $methods;
+
+        return $this;
     }
 
     /**
@@ -276,7 +335,17 @@ class Settings implements AnalysisStrategyInterface
      */
     public function getRequestAllowedHeaders(RequestInterface $request, array $requestHeaders)
     {
-        return implode(', ', $this->getEnabledItems(static::$allowedHeaders));
+        return implode(', ', $this->getEnabledItems($this->allowedHeaders));
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setRequestAllowedHeaders(array $headers)
+    {
+        $this->allowedHeaders = $headers;
+
+        return $this;
     }
 
     /**
@@ -284,7 +353,17 @@ class Settings implements AnalysisStrategyInterface
      */
     public function getResponseExposedHeaders(RequestInterface $request)
     {
-        return $this->getEnabledItems(static::$exposedHeaders);
+        return $this->getEnabledItems($this->exposedHeaders);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setResponseExposedHeaders(array $headers)
+    {
+        $this->exposedHeaders = $headers;
+
+        return $this;
     }
 
     /**
@@ -292,7 +371,17 @@ class Settings implements AnalysisStrategyInterface
      */
     public function isCheckHost()
     {
-        return static::$isCheckHost;
+        return $this->isCheckHost;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setCheckHost($checkFlag)
+    {
+        $this->isCheckHost = $checkFlag;
+
+        return $this;
     }
 
     /**

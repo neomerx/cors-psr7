@@ -19,14 +19,12 @@
 use \Mockery;
 use \Mockery\MockInterface;
 use \Neomerx\Cors\Analyzer;
-use \InvalidArgumentException;
+use \Neomerx\Cors\Strategies\Settings;
 use \Psr\Http\Message\RequestInterface;
 use \Neomerx\Cors\Contracts\AnalyzerInterface;
-use \Neomerx\Tests\Cors\Strategies\AppTestSettings;
 use \Neomerx\Cors\Contracts\AnalysisResultInterface;
 use \Neomerx\Cors\Contracts\Constants\CorsRequestHeaders;
 use \Neomerx\Cors\Contracts\Constants\CorsResponseHeaders;
-use \Neomerx\Cors\Contracts\Constants\SimpleRequestMethods;
 
 /**
  * NOTE: This test suite uses AppTestSettings and its static properties.
@@ -48,26 +46,47 @@ class AnalyzerTest extends BaseTestCase
     private $analyzer;
 
     /**
+     * @var Settings
+     */
+    private $settings;
+
+    /**
      * @inheritdoc
      */
     protected function setUp()
     {
         parent::setUp();
 
+        $this->settings = new Settings();
+        $this->settings->setServerOrigin([
+            'scheme' => 'http',
+            'host'   => 'example.com',
+            'port'   => 123,
+        ])->setRequestAllowedOrigins([
+            'http://good.example.com:321'                => true,
+            'http://evil.example.com:123'                => null,
+            CorsResponseHeaders::VALUE_ALLOW_ORIGIN_ALL  => null,
+            CorsResponseHeaders::VALUE_ALLOW_ORIGIN_NULL => null,
+        ])->setRequestAllowedMethods([
+            'GET'    => true,
+            'PATCH'  => null,
+            'POST'   => true,
+            'PUT'    => null,
+            'DELETE' => true,
+        ])->setRequestAllowedHeaders([
+            'content-type'            => true,
+            'some-disabled-header'    => null,
+            'x-enabled-custom-header' => true,
+        ])->setResponseExposedHeaders([
+            'Content-Type'      => true,
+            'X-Custom-Header'   => true,
+            'X-Disabled-Header' => null,
+        ])
+            ->setCheckHost(true)
+            ->setRequestCredentialsSupported(true);
+
         $this->request  = Mockery::mock(RequestInterface::class);
-        $this->assertNotNull($this->analyzer = Analyzer::instance(new AppTestSettings()));
-
-        AppTestSettings::$isCheckHost = true;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function tearDown()
-    {
-        parent::tearDown();
-
-        AppTestSettings::$isCheckHost = false;
+        $this->assertNotNull($this->analyzer = Analyzer::instance($this->settings));
     }
 
     /**
@@ -251,20 +270,11 @@ class AnalyzerTest extends BaseTestCase
 
         $this->thisMethodWillBeGotOnce('OPTIONS');
 
-        $maxAge            = AppTestSettings::$preFlightCacheMaxAge;
-        $isForceAddMethods = AppTestSettings::$isForceAddMethods;
-        $isForceAddHeaders = AppTestSettings::$isForceAddHeaders;
-        try {
-            AppTestSettings::$preFlightCacheMaxAge = 60;
-            AppTestSettings::$isForceAddMethods = true;
-            AppTestSettings::$isForceAddHeaders = true;
+        $this->settings->setPreFlightCacheMaxAge(60);
+        $this->settings->setForceAddAllowedMethodsToPreFlightResponse(true);
+        $this->settings->setForceAddAllowedHeadersToPreFlightResponse(true);
 
-            $result = $this->analyzer->analyze($this->request);
-        } finally {
-            AppTestSettings::$preFlightCacheMaxAge = $maxAge;
-            AppTestSettings::$isForceAddMethods    = $isForceAddMethods;
-            AppTestSettings::$isForceAddHeaders    = $isForceAddHeaders;
-        }
+        $result = $this->analyzer->analyze($this->request);
 
         $this->assertEquals(AnalysisResultInterface::TYPE_PRE_FLIGHT_REQUEST, $result->getRequestType());
         $this->assertEquals([
@@ -298,20 +308,11 @@ class AnalyzerTest extends BaseTestCase
 
         $this->thisMethodWillBeGotOnce('OPTIONS');
 
-        $maxAge            = AppTestSettings::$preFlightCacheMaxAge;
-        $isForceAddMethods = AppTestSettings::$isForceAddMethods;
-        $isForceAddHeaders = AppTestSettings::$isForceAddHeaders;
-        try {
-            AppTestSettings::$preFlightCacheMaxAge = 60;
-            AppTestSettings::$isForceAddMethods = false;
-            AppTestSettings::$isForceAddHeaders = false;
+        $this->settings->setPreFlightCacheMaxAge(60);
+        $this->settings->setForceAddAllowedMethodsToPreFlightResponse(false);
+        $this->settings->setForceAddAllowedHeadersToPreFlightResponse(false);
 
-            $result = $this->analyzer->analyze($this->request);
-        } finally {
-            AppTestSettings::$preFlightCacheMaxAge = $maxAge;
-            AppTestSettings::$isForceAddMethods    = $isForceAddMethods;
-            AppTestSettings::$isForceAddHeaders    = $isForceAddHeaders;
-        }
+        $result = $this->analyzer->analyze($this->request);
 
         $this->assertEquals(AnalysisResultInterface::TYPE_PRE_FLIGHT_REQUEST, $result->getRequestType());
         $this->assertEquals([
@@ -374,7 +375,7 @@ class AnalyzerTest extends BaseTestCase
      */
     private function getServerHost()
     {
-        return AppTestSettings::HOST . ':' . AppTestSettings::PORT;
+        return 'example.com:123';
     }
 
     /**
@@ -382,13 +383,7 @@ class AnalyzerTest extends BaseTestCase
      */
     private function getFirstAllowedOriginFromSettings()
     {
-        foreach (AppTestSettings::$allowedOrigins as $origin => $allowed) {
-            if ($allowed === true) {
-                return $origin;
-            }
-        }
-
-        throw new InvalidArgumentException('Allowed Origins settings');
+        return 'http://good.example.com:321';
     }
 
     /**
@@ -396,13 +391,7 @@ class AnalyzerTest extends BaseTestCase
      */
     private function getFirstNotAllowedMethod()
     {
-        foreach (AppTestSettings::$allowedMethods as $method => $allowed) {
-            if ($allowed !== true) {
-                return $method;
-            }
-        }
-
-        throw new InvalidArgumentException('Allowed Methods settings');
+        return 'PATCH';
     }
 
     /**
@@ -410,13 +399,7 @@ class AnalyzerTest extends BaseTestCase
      */
     private function getFirstAllowedMethod()
     {
-        foreach (AppTestSettings::$allowedMethods as $method => $allowed) {
-            if ($allowed === true) {
-                return $method;
-            }
-        }
-
-        throw new InvalidArgumentException('Allowed Methods settings');
+        return 'GET';
     }
 
     /**
@@ -424,18 +407,7 @@ class AnalyzerTest extends BaseTestCase
      */
     private function getFirstAllowedNotSimpleMethod()
     {
-        $simpleMethods = [
-            SimpleRequestMethods::GET,
-            SimpleRequestMethods::HEAD,
-            SimpleRequestMethods::POST,
-        ];
-        foreach (AppTestSettings::$allowedMethods as $method => $allowed) {
-            if ($allowed === true && in_array($method, $simpleMethods) === false) {
-                return $method;
-            }
-        }
-
-        throw new InvalidArgumentException('Allowed Methods settings');
+        return 'DELETE';
     }
 
     /**
@@ -443,13 +415,7 @@ class AnalyzerTest extends BaseTestCase
      */
     private function getFirstNotAllowedHeader()
     {
-        foreach (AppTestSettings::$allowedHeaders as $header => $allowed) {
-            if ($allowed !== true) {
-                return $header;
-            }
-        }
-
-        throw new InvalidArgumentException('Allowed Headers settings');
+        return 'some-disabled-header';
     }
 
     /**
@@ -457,17 +423,10 @@ class AnalyzerTest extends BaseTestCase
      */
     private function getAllowedHeadersList()
     {
-        $allowedHeaders = [];
-
-        foreach (AppTestSettings::$allowedHeaders as $header => $allowed) {
-            if ($allowed === true) {
-                $allowedHeaders[] = $header;
-            }
-        }
-
-        if (empty($allowedHeaders) === true) {
-            throw new InvalidArgumentException('Allowed Headers settings');
-        }
+        $allowedHeaders = [
+            'content-type',
+            'x-enabled-custom-header',
+        ];
 
         $result = implode(', ', $allowedHeaders);
 
