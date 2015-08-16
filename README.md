@@ -76,6 +76,33 @@ class CorsMiddleware
 composer require neomerx/cors-psr7
 ```
 
+## Advanced Usage
+
+There are many possible strategies for handling cross and same origin requests which might and might not depend on data from requests.
+
+This package has built-in strategy called `Settings` which implements simple settings identical for all requests (same list of allowed origins, same allowed methods for all requests and etc).
+
+However you can customize such behaviour. For example you can send different sets of allowed methods depending on request. This might be helpful when you have some kind of Access Control System and wish to differentiate response based on request (for example on its origin). You can either implement `AnalysisStrategyInterface` from scratch or override methods in `Settings` class if only a minor changes are needed to `Settings`. The new strategy could be sent to `Analyzer` constructor or `Analyzer::instance` method could be used for injection.
+
+Example
+
+```php
+class CustomMethodsSettings extends Settings
+{
+    public function getRequestAllowedMethods(
+        RequestInterface $request,
+        $requestMethod
+    ) {
+        // An external Access Control System could be used to determine
+        // which methods are allowed for this request.
+        
+        return ...;
+    }
+}
+
+$cors = Analyzer::instance(new CustomMethodsSettings())->analyze($request);
+```
+
 ## Testing
 
 ```
