@@ -11,7 +11,7 @@ This package has framework agnostic [Cross-Origin Resource Sharing](http://www.w
 
 Why this package?
 
-- Implements the latest [CORS](www.w3.org/TR/cors/).
+- Implements the latest [CORS](http://www.w3.org/TR/cors/).
 - Works with [PSR-7](http://www.php-fig.org/psr/psr-7/) interfaces.
 - Flexible, modular and extensible solution.
 - High code quality. **100%** test coverage.
