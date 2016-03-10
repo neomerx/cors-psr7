@@ -77,6 +77,23 @@ class CorsMiddleware
 composer require neomerx/cors-psr7
 ```
 
+## Debug Mode
+
+Debug logging will provide a detailed step-by-step description of how requests are handled. In order to activate it a [PSR-3 compatible Logger](http://www.php-fig.org/psr/psr-3/) should be set to `Analyzer`.
+
+```php
+    /** @var \Psr\Log\LoggerInterface $logger */
+    $logger   = ...;
+    /** @var \Psr\Http\Message\RequestInterface $request */
+    $request  = ...;
+    /** @var \Neomerx\Cors\Contracts\Strategies\SettingsStrategyInterface $settings */
+    $settings = ...;
+
+    $analyzer = Analyzer::instance($settings);
+    $analyzer->setLogger($logger)
+    $cors     = $analyzer->analyze($request);
+```
+
 ## Advanced Usage
 
 There are many possible strategies for handling cross and same origin requests which might and might not depend on data from requests.
