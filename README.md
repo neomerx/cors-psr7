@@ -11,8 +11,9 @@ This package has framework agnostic [Cross-Origin Resource Sharing](http://www.w
 
 Why this package?
 
-- Implements the latest [CORS](http://www.w3.org/TR/cors/).
-- Works with [PSR-7](http://www.php-fig.org/psr/psr-7/) interfaces.
+- Implementation is based on latest [CORS specification](http://www.w3.org/TR/cors/).
+- Works with [PSR-7 HTTP message interfaces](http://www.php-fig.org/psr/psr-7/).
+- Supports debug mode with [PSR-3 Logger Interface](http://www.php-fig.org/psr/psr-3/).
 - Flexible, modular and extensible solution.
 - High code quality. **100%** test coverage.
 - Free software license [Apache 2.0](LICENSE).

@@ -1,4 +1,4 @@
-<?php namespace Neomerx\Cors\Contracts;
+<?php namespace Neomerx\Cors\Log;
 
 /**
  * Copyright 2015 info@neomerx.com (www.neomerx.com)
@@ -16,20 +16,34 @@
  * limitations under the License.
  */
 
-use \Psr\Log\LoggerAwareInterface;
-use \Psr\Http\Message\RequestInterface;
+use \Psr\Log\LoggerAwareTrait as PsrLoggerAwareTrait;
 
 /**
  * @package Neomerx\Cors
  */
-interface AnalyzerInterface extends LoggerAwareInterface
+trait LoggerAwareTrait
 {
+    use PsrLoggerAwareTrait;
+
     /**
-     * Set request for analysis.
+     * @param string $message
+     * @param array  $context
      *
-     * @param RequestInterface $request
-     *
-     * @return AnalysisResultInterface
+     * @return void
      */
-    public function analyze(RequestInterface $request);
+    protected function logDebug($message, array $context = [])
+    {
+        $this->logger === null ?: $this->logger->debug($message, $context);
+    }
+
+    /**
+     * @param string $message
+     * @param array  $context
+     *
+     * @return void
+     */
+    protected function logInfo($message, array $context = [])
+    {
+        $this->logger === null ?: $this->logger->info($message, $context);
+    }
 }

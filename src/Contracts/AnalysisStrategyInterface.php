@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
+use \Psr\Log\LoggerAwareInterface;
 use \Psr\Http\Message\RequestInterface;
 use \Neomerx\Cors\Contracts\Http\ParsedUrlInterface;
 
 /**
  * @package Neomerx\Cors
  */
-interface AnalysisStrategyInterface
+interface AnalysisStrategyInterface extends LoggerAwareInterface
 {
     /**
      * Get server Origin URL. If array is returned it should be in parse_url() result format.

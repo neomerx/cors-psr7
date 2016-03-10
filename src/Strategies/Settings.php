@@ -17,6 +17,7 @@
  */
 
 use \Psr\Http\Message\RequestInterface;
+use \Neomerx\Cors\Log\LoggerAwareTrait;
 use \Neomerx\Cors\Contracts\Http\ParsedUrlInterface;
 use \Neomerx\Cors\Contracts\Constants\CorsResponseHeaders;
 use \Neomerx\Cors\Contracts\Strategies\SettingsStrategyInterface;
@@ -28,6 +29,8 @@ use \Neomerx\Cors\Contracts\Strategies\SettingsStrategyInterface;
  */
 class Settings implements SettingsStrategyInterface
 {
+    use LoggerAwareTrait;
+
     /**
      * @var string|array If specified as array (recommended for better performance) it should
      * be in parse_url() result format.
@@ -305,6 +308,7 @@ class Settings implements SettingsStrategyInterface
             $header = strtolower($header);
             if (isset($this->allowedHeaders[$header]) === false) {
                 $allSupported = false;
+                $this->logInfo('Request header is not allowed', ['header' => $header]);
                 break;
             }
         }

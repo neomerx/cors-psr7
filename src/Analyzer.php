@@ -16,7 +16,9 @@
  * limitations under the License.
  */
 
+use \Psr\Log\LoggerInterface;
 use \Psr\Http\Message\RequestInterface;
+use \Neomerx\Cors\Log\LoggerAwareTrait;
 use \Neomerx\Cors\Contracts\AnalyzerInterface;
 use \Neomerx\Cors\Contracts\Http\ParsedUrlInterface;
 use \Neomerx\Cors\Contracts\AnalysisResultInterface;
@@ -29,9 +31,15 @@ use \Neomerx\Cors\Contracts\Constants\SimpleRequestMethods;
 
 /**
  * @package Neomerx\Cors
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Analyzer implements AnalyzerInterface
 {
+    use LoggerAwareTrait {
+        LoggerAwareTrait::setLogger as psrSetLogger;
+    }
+
     /** HTTP method for pre-flight request */
     const PRE_FLIGHT_METHOD = 'OPTIONS';
 
@@ -87,15 +95,42 @@ class Analyzer implements AnalyzerInterface
 
     /**
      * @inheritdoc
+     */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->psrSetLogger($logger);
+        $this->strategy->setLogger($logger);
+    }
+
+    /**
+     * @inheritdoc
      *
      * @see http://www.w3.org/TR/cors/#resource-processing-model
      */
     public function analyze(RequestInterface $request)
     {
+        $this->logDebug('CORS analysis for request started.');
+
+        $result = $this->analyzeImplementation($request);
+
+        $this->logDebug('CORS analysis for request completed.');
+
+        return $result;
+    }
+
+    /**
+     * @param RequestInterface $request
+     *
+     * @return AnalysisResultInterface
+     */
+    protected function analyzeImplementation(RequestInterface $request)
+    {
         $serverOrigin = $this->factory->createParsedUrl($this->strategy->getServerOrigin());
 
         // check 'Host' request
         if ($this->strategy->isCheckHost() === true && $this->isSameHost($request, $serverOrigin) === false) {
+            $host = $this->getRequestHostHeader($request);
+            $this->logInfo('Host header in request either absent or do not match server origin.', ['host' => $host]);
             return $this->createResult(AnalysisResultInterface::ERR_NO_HOST_HEADER);
         }
 
@@ -104,11 +139,13 @@ class Analyzer implements AnalyzerInterface
         // #6.1.1 and #6.2.1
         $requestOrigin = $this->getOrigin($request);
         if ($requestOrigin === null || $this->isCrossOrigin($requestOrigin, $serverOrigin) === false) {
+            $this->logDebug('Request is not CORS (empty or same as server origin).');
             return $this->createResult(AnalysisResultInterface::TYPE_REQUEST_OUT_OF_CORS_SCOPE);
         }
 
         // #6.1.2 and #6.2.2
         if ($this->strategy->isRequestOriginAllowed($requestOrigin) === false) {
+            $this->logInfo('Request origin is not allowed.', ['origin' => $requestOrigin->getOrigin()]);
             return $this->createResult(AnalysisResultInterface::ERR_ORIGIN_NOT_ALLOWED);
         }
 
@@ -117,10 +154,12 @@ class Analyzer implements AnalyzerInterface
         // - pre-flight request (#6.2.3 - #6.2.10)
 
         if ($request->getMethod() === self::PRE_FLIGHT_METHOD) {
-            return $this->analyzeAsPreFlight($request, $requestOrigin);
+            $result = $this->analyzeAsPreFlight($request, $requestOrigin);
         } else {
-            return $this->analyzeAsRequest($request, $requestOrigin);
+            $result = $this->analyzeAsRequest($request, $requestOrigin);
         }
+
+        return $result;
     }
 
     /**
@@ -133,6 +172,8 @@ class Analyzer implements AnalyzerInterface
      */
     protected function analyzeAsRequest(RequestInterface $request, ParsedUrlInterface $requestOrigin)
     {
+        $this->logDebug('Request is identified as an actual CORS request.');
+
         $headers = [];
 
         // #6.1.3
@@ -168,12 +209,14 @@ class Analyzer implements AnalyzerInterface
         // #6.2.3
         $requestMethod = $request->getHeader(CorsRequestHeaders::METHOD);
         if (empty($requestMethod) === true) {
+            $this->logDebug('Request is not CORS (header ' . CorsRequestHeaders::METHOD . ' is not specified).');
             return $this->createResult(AnalysisResultInterface::TYPE_REQUEST_OUT_OF_CORS_SCOPE);
         } else {
             $requestMethod = $requestMethod[0];
         }
 
         // OK now we are sure it's a pre-flight request
+        $this->logDebug('Request is identified as a pre-flight CORS request.');
 
         /** @var string $requestMethod */
 
@@ -182,6 +225,7 @@ class Analyzer implements AnalyzerInterface
 
         // #6.2.5
         if ($this->strategy->isRequestMethodSupported($requestMethod) === false) {
+            $this->logInfo('Request method is not supported', ['method' => $requestMethod]);
             return $this->createResult(AnalysisResultInterface::ERR_METHOD_NOT_SUPPORTED);
         }
 
@@ -252,8 +296,8 @@ class Analyzer implements AnalyzerInterface
      */
     protected function isSameHost(RequestInterface $request, ParsedUrlInterface $serverOrigin)
     {
-        $hostHeaderValue = $request->getHeader(CorsRequestHeaders::HOST);
-        $hostUrl = empty($hostHeaderValue) === true ? null : $this->factory->createParsedUrl($hostHeaderValue[0]);
+        $host    = $this->getRequestHostHeader($request);
+        $hostUrl = $host === null ? null : $this->factory->createParsedUrl($host);
 
         $isSameHost =
             $hostUrl !== null &&
@@ -327,5 +371,18 @@ class Analyzer implements AnalyzerInterface
     {
         /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
         return new \Neomerx\Cors\Factory\Factory();
+    }
+
+    /**
+     * @param RequestInterface $request
+     *
+     * @return null|string
+     */
+    private function getRequestHostHeader(RequestInterface $request)
+    {
+        $hostHeaderValue = $request->getHeader(CorsRequestHeaders::HOST);
+        $host            = empty($hostHeaderValue) === true ? null : $hostHeaderValue[0];
+
+        return $host;
     }
 }

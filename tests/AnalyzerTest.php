@@ -19,6 +19,7 @@
 use \Mockery;
 use \Mockery\MockInterface;
 use \Neomerx\Cors\Analyzer;
+use \Psr\Log\LoggerInterface;
 use \Neomerx\Cors\Strategies\Settings;
 use \Psr\Http\Message\RequestInterface;
 use \Neomerx\Cors\Contracts\AnalyzerInterface;
@@ -94,6 +95,11 @@ class AnalyzerTest extends BaseTestCase
      */
     public function testBadRequestNoHost()
     {
+        // 1 time for check...
+        $this->theseHeadersWillBeGotOnce([
+            CorsRequestHeaders::HOST => ['evil.com'],
+        ]);
+        // ... second time for logs
         $this->theseHeadersWillBeGotOnce([
             CorsRequestHeaders::HOST => ['evil.com'],
         ]);
@@ -323,6 +329,16 @@ class AnalyzerTest extends BaseTestCase
             CorsResponseHeaders::ALLOW_METHODS     => 'GET, POST, DELETE',
             CorsResponseHeaders::ALLOW_HEADERS     => 'content-type, x-enabled-custom-header',
         ], $result->getResponseHeaders());
+    }
+
+    /**
+     * Test set logger.
+     */
+    public function testSetLogger()
+    {
+        /** @var LoggerInterface $logger */
+        $logger = Mockery::mock(LoggerInterface::class);
+        $this->analyzer->setLogger($logger);
     }
 
     /**
