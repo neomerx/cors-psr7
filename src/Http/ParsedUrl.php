@@ -140,6 +140,14 @@ class ParsedUrl implements ParsedUrlInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function __toString()
+    {
+        return $this->getOrigin();
+    }
+
+    /**
      * @param array  $array
      * @param string $key
      * @param mixed  $default

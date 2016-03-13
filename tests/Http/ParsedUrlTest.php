@@ -116,6 +116,14 @@ class ParsedUrlTest extends BaseTestCase
         $this->assertEquals(ParsedUrlInterface::DEFAULT_PORT, $url->getPort());
         $this->assertEquals('http://host', $url->getOrigin());
     }
+    /**
+     * Test to string conversion.
+     */
+    public function testToString()
+    {
+        $url = $this->getUrlFromString('http://www.host.com/ignore-this-part');
+        $this->assertEquals('http://www.host.com', (string)$url);
+    }
 
     /**
      * @param string $url

@@ -130,7 +130,10 @@ class Analyzer implements AnalyzerInterface
         // check 'Host' request
         if ($this->strategy->isCheckHost() === true && $this->isSameHost($request, $serverOrigin) === false) {
             $host = $this->getRequestHostHeader($request);
-            $this->logInfo('Host header in request either absent or do not match server origin.', ['host' => $host]);
+            $this->logInfo(
+                'Host header in request either absent or do not match server origin.',
+                ['host' => $host, 'server' => $serverOrigin]
+            );
             return $this->createResult(AnalysisResultInterface::ERR_NO_HOST_HEADER);
         }
 
@@ -139,13 +142,16 @@ class Analyzer implements AnalyzerInterface
         // #6.1.1 and #6.2.1
         $requestOrigin = $this->getOrigin($request);
         if ($requestOrigin === null || $this->isCrossOrigin($requestOrigin, $serverOrigin) === false) {
-            $this->logDebug('Request is not CORS (empty or same as server origin).');
+            $this->logDebug(
+                'Request is not CORS (request origin is empty or equals to server one).',
+                ['request' => $requestOrigin, 'server' => $serverOrigin]
+            );
             return $this->createResult(AnalysisResultInterface::TYPE_REQUEST_OUT_OF_CORS_SCOPE);
         }
 
         // #6.1.2 and #6.2.2
         if ($this->strategy->isRequestOriginAllowed($requestOrigin) === false) {
-            $this->logInfo('Request origin is not allowed.', ['origin' => $requestOrigin->getOrigin()]);
+            $this->logInfo('Request origin is not allowed.', ['origin' => $requestOrigin]);
             return $this->createResult(AnalysisResultInterface::ERR_ORIGIN_NOT_ALLOWED);
         }
 
