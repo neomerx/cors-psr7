@@ -131,7 +131,8 @@ class Analyzer implements AnalyzerInterface
         if ($this->strategy->isCheckHost() === true && $this->isSameHost($request, $serverOrigin) === false) {
             $host = $this->getRequestHostHeader($request);
             $this->logInfo(
-                'Host header in request either absent or do not match server origin.',
+                'Host header in request either absent or do not match server origin. ' .
+                'Check config settings for Server Origin and Host Check.',
                 ['host' => $host, 'server' => $serverOrigin]
             );
             return $this->createResult(AnalysisResultInterface::ERR_NO_HOST_HEADER);
@@ -143,7 +144,8 @@ class Analyzer implements AnalyzerInterface
         $requestOrigin = $this->getOrigin($request);
         if ($requestOrigin === null || $this->isCrossOrigin($requestOrigin, $serverOrigin) === false) {
             $this->logDebug(
-                'Request is not CORS (request origin is empty or equals to server one).',
+                'Request is not CORS (request origin is empty or equals to server one). ' .
+                'Check config settings for Server Origin.',
                 ['request' => $requestOrigin, 'server' => $serverOrigin]
             );
             return $this->createResult(AnalysisResultInterface::TYPE_REQUEST_OUT_OF_CORS_SCOPE);
@@ -151,7 +153,10 @@ class Analyzer implements AnalyzerInterface
 
         // #6.1.2 and #6.2.2
         if ($this->strategy->isRequestOriginAllowed($requestOrigin) === false) {
-            $this->logInfo('Request origin is not allowed.', ['origin' => $requestOrigin]);
+            $this->logInfo(
+                'Request origin is not allowed. Check config settings for Allowed Origins.',
+                ['origin' => $requestOrigin]
+            );
             return $this->createResult(AnalysisResultInterface::ERR_ORIGIN_NOT_ALLOWED);
         }
 
@@ -231,7 +236,10 @@ class Analyzer implements AnalyzerInterface
 
         // #6.2.5
         if ($this->strategy->isRequestMethodSupported($requestMethod) === false) {
-            $this->logInfo('Request method is not supported', ['method' => $requestMethod]);
+            $this->logInfo(
+                'Request method is not supported. Check config settings for Allowed Methods.',
+                ['method' => $requestMethod]
+            );
             return $this->createResult(AnalysisResultInterface::ERR_METHOD_NOT_SUPPORTED);
         }
 

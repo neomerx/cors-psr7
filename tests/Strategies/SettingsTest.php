@@ -188,6 +188,32 @@ class SettingsTest extends BaseTestCase
     }
 
     /**
+     * Test allowed request headers when all headers are allowed.
+     */
+    public function testRequestHeaderAllSupported()
+    {
+        $allowedHeaders = [
+            'content-type',
+            'x-enabled-custom-header',
+        ];
+        $prohibitedHeaders = [
+            'some-disabled-header',
+        ];
+
+        $this->settings->setRequestAllowedHeaders([
+            'content-type'                    => true,
+            Settings::VALUE_ALLOW_ALL_HEADERS => true,
+            'x-enabled-custom-header'         => true,
+        ]);
+
+        $this->assertTrue($this->settings->isRequestAllHeadersSupported($allowedHeaders));
+        $this->assertTrue($this->settings->isRequestAllHeadersSupported($prohibitedHeaders));
+        $this->assertTrue($this->settings->isRequestAllHeadersSupported(
+            array_merge($allowedHeaders, $prohibitedHeaders)
+        ));
+    }
+
+    /**
      * Test get all allowed methods.
      */
     public function testRequestAllowedMethods()

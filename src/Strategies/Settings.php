@@ -32,6 +32,16 @@ class Settings implements SettingsStrategyInterface
     use LoggerAwareTrait;
 
     /**
+     * 'All' value for allowed origins.
+     */
+    const VALUE_ALLOW_ORIGIN_ALL = CorsResponseHeaders::VALUE_ALLOW_ORIGIN_ALL;
+
+    /**
+     * 'All' values for allowed headers.
+     */
+    const VALUE_ALLOW_ALL_HEADERS = '*';
+
+    /**
      * @var string|array If specified as array (recommended for better performance) it should
      * be in parse_url() result format.
      *
@@ -51,9 +61,9 @@ class Settings implements SettingsStrategyInterface
      * For example,
      *
      * $allowedOrigins = [
-     *     'http://example.com:123' => true,
-     *     'http://evil.com'        => null,
-     *     '*'                      => null,
+     *     'http://example.com:123'     => true,
+     *     'http://evil.com'            => null,
+     *     self::VALUE_ALLOW_ORIGIN_ALL => null,
      * ];
      *
      * @var array
@@ -91,8 +101,9 @@ class Settings implements SettingsStrategyInterface
      * For example,
      *
      * $allowedHeaders = [
-     *     'content-type'            => true,
-     *     'x-custom-request-header' => null,
+     *     'content-type'                => true,
+     *     'x-custom-request-header'     => null,
+     *     self::VALUE_ALLOW_ALL_HEADERS => null,
      * ];
      *
      * Security Note: you have to remember CORS is not access control system and you should not expect all cross-origin
@@ -304,11 +315,18 @@ class Settings implements SettingsStrategyInterface
     {
         $allSupported = true;
 
+        if (isset($this->allowedHeaders[self::VALUE_ALLOW_ALL_HEADERS]) === true) {
+            return $allSupported;
+        }
+
         foreach ($headers as $header) {
             $header = strtolower($header);
             if (isset($this->allowedHeaders[$header]) === false) {
                 $allSupported = false;
-                $this->logInfo('Request header is not allowed', ['header' => $header]);
+                $this->logInfo(
+                    'Request header is not allowed. Check config settings for Allowed Headers.',
+                    ['header' => $header]
+                );
                 break;
             }
         }
