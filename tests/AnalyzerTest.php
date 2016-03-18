@@ -151,6 +151,26 @@ class AnalyzerTest extends BaseTestCase
     }
 
     /**
+     * Test if 'file://' as origin.
+     */
+    public function testNotCorsFileOrigin()
+    {
+        $this->theseHeadersWillBeGotOnce([
+            CorsRequestHeaders::HOST   => [$this->getServerHost()],
+            CorsRequestHeaders::ORIGIN => ['file://'],
+        ]);
+
+        $this->existenceOfTheseHeadersWillBeCheckedOnce([
+            CorsRequestHeaders::ORIGIN => true,
+        ]);
+
+        $result = $this->analyzer->analyze($this->request);
+
+        $this->assertEquals(AnalysisResultInterface::TYPE_REQUEST_OUT_OF_CORS_SCOPE, $result->getRequestType());
+        $this->assertEquals([], $result->getResponseHeaders());
+    }
+
+    /**
      * Test actual CORS request.
      */
     public function testValidActualCorsRequest()

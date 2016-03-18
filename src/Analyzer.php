@@ -17,6 +17,7 @@
  */
 
 use \Psr\Log\LoggerInterface;
+use \InvalidArgumentException;
 use \Psr\Http\Message\RequestInterface;
 use \Neomerx\Cors\Log\LoggerAwareTrait;
 use \Neomerx\Cors\Contracts\AnalyzerInterface;
@@ -359,9 +360,15 @@ class Analyzer implements AnalyzerInterface
     {
         $origin = null;
         if ($request->hasHeader(CorsRequestHeaders::ORIGIN) === true) {
-            $headerValue = $request->getHeader(CorsRequestHeaders::ORIGIN);
-            empty($headerValue) === false ? $origin = $this->factory->createParsedUrl($headerValue[0]) : null;
-
+            $header = $request->getHeader(CorsRequestHeaders::ORIGIN);
+            if (empty($header) === false) {
+                $value  = $header[0];
+                try {
+                    $origin = $this->factory->createParsedUrl($value);
+                } catch (InvalidArgumentException $exception) {
+                    $this->logWarning('Origin header URL cannot be parsed.', ['url' => $value]);
+                }
+            }
         }
 
         return $origin;

@@ -58,8 +58,6 @@ class ParsedUrl implements ParsedUrlInterface
      */
     public function __construct($url)
     {
-        assert('is_string($url) || is_array($url)');
-
         if (is_array($url) === true) {
             $parsedUrl = $url;
         } else {

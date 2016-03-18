@@ -46,4 +46,15 @@ trait LoggerAwareTrait
     {
         $this->logger === null ?: $this->logger->info($message, $context);
     }
+
+    /**
+     * @param string $message
+     * @param array  $context
+     *
+     * @return void
+     */
+    protected function logWarning($message, array $context = [])
+    {
+        $this->logger === null ?: $this->logger->warning($message, $context);
+    }
 }
