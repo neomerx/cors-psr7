@@ -45,13 +45,13 @@ class Settings implements SettingsStrategyInterface
     const KEY_SERVER_ORIGIN = 0;
 
     /** Settings key */
-    const KEY_SERVER_ORIGIN_SCHEMA = 0;
+    const KEY_SERVER_ORIGIN_SCHEME = 'scheme';
 
     /** Settings key */
-    const KEY_SERVER_ORIGIN_HOST = 1;
+    const KEY_SERVER_ORIGIN_HOST = 'host';
 
     /** Settings key */
-    const KEY_SERVER_ORIGIN_PORT = 2;
+    const KEY_SERVER_ORIGIN_PORT = 'port';
 
     /** Settings key */
     const KEY_ALLOWED_ORIGINS = 1;
@@ -90,7 +90,7 @@ class Settings implements SettingsStrategyInterface
          * @see http://php.net/manual/function.parse-url.php
          */
         self::KEY_SERVER_ORIGIN        => [
-            self::KEY_SERVER_ORIGIN_SCHEMA => '',
+            self::KEY_SERVER_ORIGIN_SCHEME => '',
             self::KEY_SERVER_ORIGIN_HOST   => ParsedUrlInterface::DEFAULT_PORT,
             self::KEY_SERVER_ORIGIN_PORT   => '',
         ],
