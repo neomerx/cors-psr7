@@ -24,6 +24,22 @@ use \Neomerx\Cors\Contracts\AnalysisStrategyInterface;
 interface SettingsStrategyInterface extends AnalysisStrategyInterface
 {
     /**
+     * Get all settings in internal format (for caching).
+     *
+     * @return array
+     */
+    public function getSettings();
+
+    /**
+     * Set settings from data in internal format.
+     *
+     * @param array $settings
+     *
+     * @return void
+     */
+    public function setSettings(array $settings);
+
+    /**
      * Set server Origin URL. If array should be in parse_url() result format.
      *
      * @see http://php.net/manual/function.parse-url.php

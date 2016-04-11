@@ -94,6 +94,9 @@ class SettingsTest extends BaseTestCase
 
         $this->factory = FactoryTest::createFactory();
         $this->request = Mockery::mock(RequestInterface::class);
+
+        $this->assertNotEmpty($cacheSettings = $this->settings->getSettings());
+        $this->settings->setSettings($cacheSettings);
     }
 
     /**

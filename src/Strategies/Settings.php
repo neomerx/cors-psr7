@@ -41,145 +41,195 @@ class Settings implements SettingsStrategyInterface
      */
     const VALUE_ALLOW_ALL_HEADERS = '*';
 
+    /** Settings key */
+    const KEY_SERVER_ORIGIN = 0;
+
+    /** Settings key */
+    const KEY_SERVER_ORIGIN_SCHEMA = 0;
+
+    /** Settings key */
+    const KEY_SERVER_ORIGIN_HOST = 1;
+
+    /** Settings key */
+    const KEY_SERVER_ORIGIN_PORT = 2;
+
+    /** Settings key */
+    const KEY_ALLOWED_ORIGINS = 1;
+
+    /** Settings key */
+    const KEY_ALLOWED_METHODS = 2;
+
+    /** Settings key */
+    const KEY_ALLOWED_HEADERS = 3;
+
+    /** Settings key */
+    const KEY_EXPOSED_HEADERS = 4;
+
+    /** Settings key */
+    const KEY_IS_USING_CREDENTIALS = 5;
+
+    /** Settings key */
+    const KEY_FLIGHT_CACHE_MAX_AGE = 6;
+
+    /** Settings key */
+    const KEY_IS_FORCE_ADD_METHODS = 7;
+
+    /** Settings key */
+    const KEY_IS_FORCE_ADD_HEADERS = 8;
+
+    /** Settings key */
+    const KEY_IS_CHECK_HOST = 9;
+
     /**
-     * @var string|array If specified as array (recommended for better performance) it should
-     * be in parse_url() result format.
-     *
-     * @see http://php.net/manual/function.parse-url.php
+     * @var array
      */
-    private $serverOrigin = [
-        'scheme' => '',
-        'host'   => ParsedUrlInterface::DEFAULT_PORT,
-        'port'   => '',
+    private $settings = [
+        /**
+         * Array should be in parse_url() result format.
+         *
+         * @see http://php.net/manual/function.parse-url.php
+         */
+        self::KEY_SERVER_ORIGIN        => [
+            self::KEY_SERVER_ORIGIN_SCHEMA => '',
+            self::KEY_SERVER_ORIGIN_HOST   => ParsedUrlInterface::DEFAULT_PORT,
+            self::KEY_SERVER_ORIGIN_PORT   => '',
+        ],
+
+        /**
+         * A list of allowed request origins (lower-cased, no trail slashes).
+         * Value `true` enables and value `null` disables origin.
+         * If all origins '*' are enabled all settings for other origins are ignored.
+         *
+         * For example,
+         *
+         * [
+         *     'http://example.com:123'     => true,
+         *     'http://evil.com'            => null,
+         *     self::VALUE_ALLOW_ORIGIN_ALL => null,
+         * ];
+         */
+        self::KEY_ALLOWED_ORIGINS => [],
+
+        /**
+         * A list of allowed request methods (case sensitive). Value `true` enables and value `null` disables method.
+         *
+         * For example,
+         *
+         * [
+         *     'GET'    => true,
+         *     'PATCH'  => true,
+         *     'POST'   => true,
+         *     'PUT'    => null,
+         *     'DELETE' => true,
+         * ];
+         *
+         * Security Note: you have to remember CORS is not access control system and you should not expect all
+         * cross-origin requests will have pre-flights. For so-called 'simple' methods with so-called 'simple'
+         * headers request will be made without pre-flight. Thus you can not restrict such requests with CORS
+         * and should use other means.
+         * For example method 'GET' without any headers or with only 'simple' headers will not have pre-flight
+         * request so disabling it will not restrict access to resource(s).
+         *
+         * You can read more on 'simple' methods at http://www.w3.org/TR/cors/#simple-method
+         */
+        self::KEY_ALLOWED_METHODS => [],
+
+        /**
+         * A list of allowed request headers (lower-cased). Value `true` enables and value `null` disables header.
+         *
+         * For example,
+         *
+         * $allowedHeaders = [
+         *     'content-type'                => true,
+         *     'x-custom-request-header'     => null,
+         *     self::VALUE_ALLOW_ALL_HEADERS => null,
+         * ];
+         *
+         * Security Note: you have to remember CORS is not access control system and you should not expect all
+         * cross-origin requests will have pre-flights. For so-called 'simple' methods with so-called 'simple'
+         * headers request will be made without pre-flight. Thus you can not restrict such requests with CORS
+         * and should use other means.
+         * For example method 'GET' without any headers or with only 'simple' headers will not have pre-flight
+         * request so disabling it will not restrict access to resource(s).
+         *
+         * You can read more on 'simple' headers at http://www.w3.org/TR/cors/#simple-header
+         */
+        self::KEY_ALLOWED_HEADERS             => [],
+
+        /**
+         * A list of headers (case insensitive) which will be made accessible to user agent (browser) in response.
+         * Value `true` enables and value `null` disables header.
+         *
+         * For example,
+         *
+         * [
+         *     'Content-Type'             => true,
+         *     'X-Custom-Response-Header' => true,
+         *     'X-Disabled-Header'        => null,
+         * ];
+         */
+        self::KEY_EXPOSED_HEADERS      => [],
+
+        /**
+         * If access with credentials is supported by the resource.
+         */
+        self::KEY_IS_USING_CREDENTIALS => false,
+
+        /**
+         * Pre-flight response cache max period in seconds.
+         *
+         * @var int
+         */
+        self::KEY_FLIGHT_CACHE_MAX_AGE => 0,
+
+        /**
+         * If allowed methods should be added to pre-flight response when
+         * 'simple' method is requested (see #6.2.9 CORS).
+         *
+         * @see http://www.w3.org/TR/cors/#resource-preflight-requests
+         */
+        self::KEY_IS_FORCE_ADD_METHODS => false,
+
+        /**
+         * If allowed headers should be added when request headers are 'simple' and
+         * non of them is 'Content-Type' (see #6.2.10 CORS).
+         *
+         * @see http://www.w3.org/TR/cors/#resource-preflight-requests
+         *
+         * @var bool
+         */
+        self::KEY_IS_FORCE_ADD_HEADERS => false,
+
+        /**
+         * If request 'Host' header should be checked against server's origin.
+         *
+         * @var bool
+         */
+        self::KEY_IS_CHECK_HOST => false,
     ];
 
     /**
-     * A list of allowed request origins (lower-cased, no trail slashes).
-     * Value `true` enables and value `null` disables origin.
-     * If all origins '*' are enabled all settings for other origins are ignored.
-     *
-     * For example,
-     *
-     * $allowedOrigins = [
-     *     'http://example.com:123'     => true,
-     *     'http://evil.com'            => null,
-     *     self::VALUE_ALLOW_ORIGIN_ALL => null,
-     * ];
-     *
-     * @var array
+     * @inheritdoc
      */
-    private $allowedOrigins = [];
+    public function getSettings()
+    {
+        return $this->settings;
+    }
 
     /**
-     * A list of allowed request methods (case sensitive). Value `true` enables and value `null` disables method.
-     *
-     * For example,
-     *
-     * $allowedMethods = [
-     *     'GET'    => true,
-     *     'PATCH'  => true,
-     *     'POST'   => true,
-     *     'PUT'    => null,
-     *     'DELETE' => true,
-     * ];
-     *
-     * Security Note: you have to remember CORS is not access control system and you should not expect all cross-origin
-     * requests will have pre-flights. For so-called 'simple' methods with so-called 'simple' headers request
-     * will be made without pre-flight. Thus you can not restrict such requests with CORS and should use other means.
-     * For example method 'GET' without any headers or with only 'simple' headers will not have pre-flight request so
-     * disabling it will not restrict access to resource(s).
-     *
-     * You can read more on 'simple' methods at http://www.w3.org/TR/cors/#simple-method
-     *
-     * @var array
+     * @inheritdoc
      */
-    private $allowedMethods = [];
-
-    /**
-     * A list of allowed request headers (lower-cased). Value `true` enables and value `null` disables header.
-     *
-     * For example,
-     *
-     * $allowedHeaders = [
-     *     'content-type'                => true,
-     *     'x-custom-request-header'     => null,
-     *     self::VALUE_ALLOW_ALL_HEADERS => null,
-     * ];
-     *
-     * Security Note: you have to remember CORS is not access control system and you should not expect all cross-origin
-     * requests will have pre-flights. For so-called 'simple' methods with so-called 'simple' headers request
-     * will be made without pre-flight. Thus you can not restrict such requests with CORS and should use other means.
-     * For example method 'GET' without any headers or with only 'simple' headers will not have pre-flight request so
-     * disabling it will not restrict access to resource(s).
-     *
-     * You can read more on 'simple' headers at http://www.w3.org/TR/cors/#simple-header
-     *
-     * @var array
-     */
-    private $allowedHeaders = [];
-
-    /**
-     * A list of headers (case insensitive) which will be made accessible to user agent (browser) in response.
-     * Value `true` enables and value `null` disables header.
-     *
-     * For example,
-     *
-     * $exposedHeaders = [
-     *     'Content-Type'             => true,
-     *     'X-Custom-Response-Header' => true,
-     *     'X-Disabled-Header'        => null,
-     * ];
-     *
-     * @var string[]
-     */
-    private $exposedHeaders = [];
-
-    /**
-     * If access with credentials is supported by the resource.
-     *
-     * @var bool
-     */
-    private $isUsingCredentials = false;
-
-    /**
-     * Pre-flight response cache max period in seconds.
-     *
-     * @var int
-     */
-    private $preFlightCacheMaxAge = 0;
-
-    /**
-     * If allowed methods should be added to pre-flight response when 'simple' method is requested (see #6.2.9 CORS).
-     *
-     * @see http://www.w3.org/TR/cors/#resource-preflight-requests
-     *
-     * @var bool
-     */
-    private $isForceAddMethods = false;
-
-    /**
-     * If allowed headers should be added when request headers are 'simple' and
-     * non of them is 'Content-Type' (see #6.2.10 CORS).
-     *
-     * @see http://www.w3.org/TR/cors/#resource-preflight-requests
-     *
-     * @var bool
-     */
-    private $isForceAddHeaders = false;
-
-    /**
-     * If request 'Host' header should be checked against server's origin.
-     *
-     * @var bool
-     */
-    private $isCheckHost = false;
+    public function setSettings(array $settings)
+    {
+        $this->settings = $settings;
+    }
 
     /**
      * @inheritdoc
      */
     public function getServerOrigin()
     {
-        return $this->serverOrigin;
+        return $this->settings[self::KEY_SERVER_ORIGIN];
     }
 
     /**
@@ -187,7 +237,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function setServerOrigin($origin)
     {
-        $this->serverOrigin = $origin;
+        $this->settings[self::KEY_SERVER_ORIGIN] = is_string($origin) === true ? parse_url($origin) : $origin;
 
         return $this;
     }
@@ -205,7 +255,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function getPreFlightCacheMaxAge(RequestInterface $request)
     {
-        return $this->preFlightCacheMaxAge;
+        return $this->settings[self::KEY_FLIGHT_CACHE_MAX_AGE];
     }
 
     /**
@@ -213,7 +263,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function setPreFlightCacheMaxAge($cacheMaxAge)
     {
-        $this->preFlightCacheMaxAge = $cacheMaxAge;
+        $this->settings[self::KEY_FLIGHT_CACHE_MAX_AGE] = $cacheMaxAge;
 
         return $this;
     }
@@ -223,7 +273,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function isForceAddAllowedMethodsToPreFlightResponse()
     {
-        return $this->isForceAddMethods;
+        return $this->settings[self::KEY_IS_FORCE_ADD_METHODS];
     }
 
     /**
@@ -231,7 +281,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function setForceAddAllowedMethodsToPreFlightResponse($forceFlag)
     {
-        $this->isForceAddMethods = $forceFlag;
+        $this->settings[self::KEY_IS_FORCE_ADD_METHODS] = $forceFlag;
 
         return $this;
     }
@@ -241,7 +291,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function isForceAddAllowedHeadersToPreFlightResponse()
     {
-        return $this->isForceAddHeaders;
+        return $this->settings[self::KEY_IS_FORCE_ADD_HEADERS];
     }
 
     /**
@@ -249,7 +299,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function setForceAddAllowedHeadersToPreFlightResponse($forceFlag)
     {
-        $this->isForceAddHeaders = $forceFlag;
+        $this->settings[self::KEY_IS_FORCE_ADD_HEADERS] = $forceFlag;
 
         return $this;
     }
@@ -259,7 +309,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function isRequestCredentialsSupported(RequestInterface $request)
     {
-        return $this->isUsingCredentials;
+        return $this->settings[self::KEY_IS_USING_CREDENTIALS];
     }
 
     /**
@@ -267,7 +317,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function setRequestCredentialsSupported($isSupported)
     {
-        $this->isUsingCredentials = $isSupported;
+        $this->settings[self::KEY_IS_USING_CREDENTIALS] = $isSupported;
 
         return $this;
     }
@@ -278,11 +328,12 @@ class Settings implements SettingsStrategyInterface
     public function isRequestOriginAllowed(ParsedUrlInterface $requestOrigin)
     {
         // check if all origins are allowed with '*'
-        $isAllowed = isset($this->allowedOrigins[CorsResponseHeaders::VALUE_ALLOW_ORIGIN_ALL]);
+        $isAllowed =
+            isset($this->settings[self::KEY_ALLOWED_ORIGINS][CorsResponseHeaders::VALUE_ALLOW_ORIGIN_ALL]);
 
         if ($isAllowed === false) {
             $requestOriginStr = strtolower($requestOrigin->getOrigin());
-            $isAllowed        = isset($this->allowedOrigins[$requestOriginStr]);
+            $isAllowed        = isset($this->settings[self::KEY_ALLOWED_ORIGINS][$requestOriginStr]);
         }
 
         return $isAllowed;
@@ -293,7 +344,11 @@ class Settings implements SettingsStrategyInterface
      */
     public function setRequestAllowedOrigins(array $origins)
     {
-        $this->allowedOrigins = $origins;
+        $this->settings[self::KEY_ALLOWED_ORIGINS] = [];
+        foreach ($origins as $origin => $enabled) {
+            $lcOrigin                                             = strtolower($origin);
+            $this->settings[self::KEY_ALLOWED_ORIGINS][$lcOrigin] = $enabled;
+        }
 
         return $this;
     }
@@ -303,7 +358,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function isRequestMethodSupported($method)
     {
-        $isAllowed = isset($this->allowedMethods[$method]);
+        $isAllowed = isset($this->settings[self::KEY_ALLOWED_METHODS][$method]);
 
         return $isAllowed;
     }
@@ -315,13 +370,13 @@ class Settings implements SettingsStrategyInterface
     {
         $allSupported = true;
 
-        if (isset($this->allowedHeaders[self::VALUE_ALLOW_ALL_HEADERS]) === true) {
+        if (isset($this->settings[self::KEY_ALLOWED_HEADERS][self::VALUE_ALLOW_ALL_HEADERS]) === true) {
             return $allSupported;
         }
 
         foreach ($headers as $header) {
-            $header = strtolower($header);
-            if (isset($this->allowedHeaders[$header]) === false) {
+            $lcHeader = strtolower($header);
+            if (isset($this->settings[self::KEY_ALLOWED_HEADERS][$lcHeader]) === false) {
                 $allSupported = false;
                 $this->logInfo(
                     'Request header is not allowed. Check config settings for Allowed Headers.',
@@ -339,7 +394,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function getRequestAllowedMethods(RequestInterface $request, $requestMethod)
     {
-        return implode(', ', $this->getEnabledItems($this->allowedMethods));
+        return implode(', ', $this->getEnabledItems($this->settings[self::KEY_ALLOWED_METHODS]));
     }
 
     /**
@@ -347,7 +402,10 @@ class Settings implements SettingsStrategyInterface
      */
     public function setRequestAllowedMethods(array $methods)
     {
-        $this->allowedMethods = $methods;
+        $this->settings[self::KEY_ALLOWED_METHODS] = [];
+        foreach ($methods as $method => $enabled) {
+            $this->settings[self::KEY_ALLOWED_METHODS][$method] = $enabled;
+        }
 
         return $this;
     }
@@ -357,7 +415,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function getRequestAllowedHeaders(RequestInterface $request, array $requestHeaders)
     {
-        return implode(', ', $this->getEnabledItems($this->allowedHeaders));
+        return implode(', ', $this->getEnabledItems($this->settings[self::KEY_ALLOWED_HEADERS]));
     }
 
     /**
@@ -365,7 +423,11 @@ class Settings implements SettingsStrategyInterface
      */
     public function setRequestAllowedHeaders(array $headers)
     {
-        $this->allowedHeaders = $headers;
+        $this->settings[self::KEY_ALLOWED_HEADERS] = [];
+        foreach ($headers as $header => $enabled) {
+            $lcHeader                                             = strtolower($header);
+            $this->settings[self::KEY_ALLOWED_HEADERS][$lcHeader] = $enabled;
+        }
 
         return $this;
     }
@@ -375,7 +437,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function getResponseExposedHeaders(RequestInterface $request)
     {
-        return $this->getEnabledItems($this->exposedHeaders);
+        return $this->getEnabledItems($this->settings[self::KEY_EXPOSED_HEADERS]);
     }
 
     /**
@@ -383,7 +445,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function setResponseExposedHeaders(array $headers)
     {
-        $this->exposedHeaders = $headers;
+        $this->settings[self::KEY_EXPOSED_HEADERS] = $headers;
 
         return $this;
     }
@@ -393,7 +455,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function isCheckHost()
     {
-        return $this->isCheckHost;
+        return $this->settings[self::KEY_IS_CHECK_HOST];
     }
 
     /**
@@ -401,7 +463,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function setCheckHost($checkFlag)
     {
-        $this->isCheckHost = $checkFlag;
+        $this->settings[self::KEY_IS_CHECK_HOST] = $checkFlag;
 
         return $this;
     }
