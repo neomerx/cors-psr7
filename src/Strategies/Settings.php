@@ -91,8 +91,8 @@ class Settings implements SettingsStrategyInterface
          */
         self::KEY_SERVER_ORIGIN        => [
             self::KEY_SERVER_ORIGIN_SCHEME => '',
-            self::KEY_SERVER_ORIGIN_HOST   => ParsedUrlInterface::DEFAULT_PORT,
-            self::KEY_SERVER_ORIGIN_PORT   => '',
+            self::KEY_SERVER_ORIGIN_HOST   => '',
+            self::KEY_SERVER_ORIGIN_PORT   => ParsedUrlInterface::DEFAULT_PORT,
         ],
 
         /**

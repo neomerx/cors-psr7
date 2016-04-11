@@ -100,6 +100,22 @@ class SettingsTest extends BaseTestCase
     }
 
     /**
+     * Test set origin.
+     */
+    public function testSetOrigin()
+    {
+        $settings = new Settings();
+
+        $settings->setServerOrigin(self::SCHEME . '://' . self::HOST . ':' . self::PORT);
+
+        $this->assertEquals([
+            'scheme' => self::SCHEME,
+            'host'   => self::HOST,
+            'port'   => self::PORT,
+        ], $settings->getServerOrigin());
+    }
+
+    /**
      * Test get/set methods for simple properties/methods.
      */
     public function testSimpleGetSetSettings()
