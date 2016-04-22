@@ -83,7 +83,7 @@ class Settings implements SettingsStrategyInterface
     /**
      * @var array
      */
-    private $settings;
+    protected $settings;
 
     /**
      * @param array $settings
