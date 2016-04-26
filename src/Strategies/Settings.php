@@ -140,7 +140,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function getPreFlightCacheMaxAge(RequestInterface $request)
     {
-        return $this->settings[self::KEY_FLIGHT_CACHE_MAX_AGE];
+        return $this->getValue(self::KEY_FLIGHT_CACHE_MAX_AGE, 0);
     }
 
     /**
@@ -158,7 +158,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function isForceAddAllowedMethodsToPreFlightResponse()
     {
-        return $this->settings[self::KEY_IS_FORCE_ADD_METHODS];
+        return $this->getValue(self::KEY_IS_FORCE_ADD_METHODS, false);
     }
 
     /**
@@ -176,7 +176,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function isForceAddAllowedHeadersToPreFlightResponse()
     {
-        return $this->settings[self::KEY_IS_FORCE_ADD_HEADERS];
+        return $this->getValue(self::KEY_IS_FORCE_ADD_HEADERS, false);
     }
 
     /**
@@ -194,7 +194,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function isRequestCredentialsSupported(RequestInterface $request)
     {
-        return $this->settings[self::KEY_IS_USING_CREDENTIALS];
+        return $this->getValue(self::KEY_IS_USING_CREDENTIALS, false);
     }
 
     /**
@@ -340,7 +340,7 @@ class Settings implements SettingsStrategyInterface
      */
     public function isCheckHost()
     {
-        return $this->settings[self::KEY_IS_CHECK_HOST];
+        return $this->getValue(self::KEY_IS_CHECK_HOST, false);
     }
 
     /**
@@ -471,5 +471,16 @@ class Settings implements SettingsStrategyInterface
              */
             self::KEY_IS_CHECK_HOST        => false,
         ];
+    }
+
+    /**
+     * @param mixed $key
+     * @param mixed $default
+     *
+     * @return mixed
+     */
+    private function getValue($key, $default)
+    {
+        return array_key_exists($key, $this->settings) === true ? $this->settings[$key] : $default;
     }
 }
