@@ -38,6 +38,10 @@ class Settings implements SettingsStrategyInterface
 
     /**
      * 'All' values for allowed headers.
+     *
+     *  @deprecated
+     * Please list all supported headers instead. 'All headers allowed' is not supported by browsers.
+     * @see https://github.com/neomerx/cors-psr7/issues/23
      */
     const VALUE_ALLOW_ALL_HEADERS = '*';
 
@@ -300,7 +304,14 @@ class Settings implements SettingsStrategyInterface
      */
     public function getRequestAllowedHeaders(RequestInterface $request, array $requestHeaders)
     {
-        return implode(', ', $this->getEnabledItems($this->settings[self::KEY_ALLOWED_HEADERS]));
+        $headers = $this->settings[self::KEY_ALLOWED_HEADERS];
+
+        // 'all headers' is not a header actually so we remove it
+        unset($headers[self::VALUE_ALLOW_ALL_HEADERS]);
+
+        $enabled = $this->getEnabledItems($headers);
+
+        return implode(', ', $enabled);
     }
 
     /**
