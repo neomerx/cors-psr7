@@ -131,6 +131,26 @@ class AnalyzerTest extends BaseTestCase
     }
 
     /**
+     * Test not CORS request (Origin identical to server's one).
+     */
+    public function testNotCorsOriginIdenticalToServer()
+    {
+        $this->theseHeadersWillBeGotOnce([
+            CorsRequestHeaders::HOST   => [$this->getServerHost()],
+            CorsRequestHeaders::ORIGIN => [$this->getServerHost('http')],
+        ]);
+
+        $this->existenceOfTheseHeadersWillBeCheckedOnce([
+            CorsRequestHeaders::ORIGIN => true,
+        ]);
+
+        $result = $this->analyzer->analyze($this->request);
+
+        $this->assertEquals(AnalysisResultInterface::TYPE_REQUEST_OUT_OF_CORS_SCOPE, $result->getRequestType());
+        $this->assertEquals([], $result->getResponseHeaders());
+    }
+
+    /**
      * Test not CORS request (not allowed Origin header).
      */
     public function testNotCorsNotAllowedOrigin()
@@ -407,11 +427,13 @@ class AnalyzerTest extends BaseTestCase
     }
 
     /**
+     * @param string $schema
+     *
      * @return string
      */
-    private function getServerHost()
+    private function getServerHost($schema = '')
     {
-        return 'example.com:123';
+        return empty($schema) === true ? 'example.com:123' : "$schema://example.com:123";
     }
 
     /**

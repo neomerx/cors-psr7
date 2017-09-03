@@ -33,7 +33,7 @@ trait LoggerAwareTrait
      */
     protected function logDebug($message, array $context = [])
     {
-        $this->logger === null ?: $this->logger->debug($message, $context);
+        $this->hasLogger() === true ?: $this->logger->debug($message, $context);
     }
 
     /**
@@ -44,7 +44,7 @@ trait LoggerAwareTrait
      */
     protected function logInfo($message, array $context = [])
     {
-        $this->logger === null ?: $this->logger->info($message, $context);
+        $this->hasLogger() === true ?: $this->logger->info($message, $context);
     }
 
     /**
@@ -55,6 +55,14 @@ trait LoggerAwareTrait
      */
     protected function logWarning($message, array $context = [])
     {
-        $this->logger === null ?: $this->logger->warning($message, $context);
+        $this->hasLogger() === true ?: $this->logger->warning($message, $context);
+    }
+
+    /**
+     * @return bool
+     */
+    protected function hasLogger()
+    {
+        return $this->logger === null;
     }
 }

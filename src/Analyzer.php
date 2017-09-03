@@ -143,9 +143,15 @@ class Analyzer implements AnalyzerInterface
 
         // #6.1.1 and #6.2.1
         $requestOrigin = $this->getOrigin($request);
-        if ($requestOrigin === null || $this->isCrossOrigin($requestOrigin, $serverOrigin) === false) {
-            $this->logDebug(
-                'Request is not CORS (request origin is empty or equals to server one). ' .
+        if ($requestOrigin === null) {
+            $this->logInfo(
+                'Request is not CORS (request origin is empty).',
+                ['request' => $requestOrigin, 'server' => $serverOrigin]
+            );
+            return $this->createResult(AnalysisResultInterface::TYPE_REQUEST_OUT_OF_CORS_SCOPE);
+        } elseif ($this->isCrossOrigin($requestOrigin, $serverOrigin) === false) {
+            $this->logInfo(
+                'Request is not CORS (request origin equals to server one). ' .
                 'Check config settings for Server Origin.',
                 ['request' => $requestOrigin, 'server' => $serverOrigin]
             );
