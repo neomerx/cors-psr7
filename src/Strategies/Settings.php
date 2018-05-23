@@ -39,7 +39,7 @@ class Settings implements SettingsStrategyInterface
     /**
      * 'All' values for allowed headers.
      *
-     *  @deprecated
+     * @deprecated
      * Please list all supported headers instead. 'All headers allowed' is not supported by browsers.
      * @see https://github.com/neomerx/cors-psr7/issues/23
      */
@@ -48,7 +48,11 @@ class Settings implements SettingsStrategyInterface
     /** Settings key */
     const KEY_SERVER_ORIGIN = 0;
 
-    /** Settings key */
+    /**
+     * @deprecated Server Scheme is not used for `Host` header comparison anymore. You should remove it from settings.
+     *
+     * Settings key
+     */
     const KEY_SERVER_ORIGIN_SCHEME = 'scheme';
 
     /** Settings key */
@@ -393,9 +397,12 @@ class Settings implements SettingsStrategyInterface
             /**
              * Array should be in parse_url() result format.
              * @see http://php.net/manual/function.parse-url.php
+             *
+             * Recommendation: specify only Host.
+             * Browsers don't send port neither for HTTP(80), nor for HTTPS(443) in Host header which covers 99% cases.
+             * You should specify the port only if you want to require non-standard port in `Host` header (e.g. 8080).
              */
             self::KEY_SERVER_ORIGIN        => [
-                self::KEY_SERVER_ORIGIN_SCHEME => '',
                 self::KEY_SERVER_ORIGIN_HOST   => '',
                 self::KEY_SERVER_ORIGIN_PORT   => ParsedUrlInterface::DEFAULT_PORT,
             ],

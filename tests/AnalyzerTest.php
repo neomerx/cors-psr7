@@ -85,9 +85,9 @@ class AnalyzerTest extends BaseTestCase
         ])
             ->setCheckHost(true)
             ->setRequestCredentialsSupported(true);
+        $this->assertNotNull($this->analyzer = Analyzer::instance($this->settings));
 
         $this->request  = Mockery::mock(RequestInterface::class);
-        $this->assertNotNull($this->analyzer = Analyzer::instance($this->settings));
     }
 
     /**
@@ -214,6 +214,46 @@ class AnalyzerTest extends BaseTestCase
             CorsResponseHeaders::EXPOSE_HEADERS    => ['Content-Type', 'X-Custom-Header'],
             CorsResponseHeaders::ALLOW_ORIGIN      => $allowedOrigin,
             CorsResponseHeaders::ALLOW_CREDENTIALS => CorsResponseHeaders::VALUE_ALLOW_CREDENTIALS_TRUE,
+            CorsResponseHeaders::VARY              => CorsRequestHeaders::ORIGIN,
+        ], $result->getResponseHeaders());
+    }
+
+    /**
+     * Test actual CORS request with default server port (e.g. 80 or 443 which is omitted in Host header).
+     */
+    public function testValidActualCorsRequestWithOmittedHostPort()
+    {
+        $allowedOrigin = 'http://good.example.com:321';
+
+        // CORS settings
+        $settings = new Settings();
+        $settings->setServerOrigin([
+            'host' => 'example.com'
+        ])->setRequestAllowedOrigins([
+            $allowedOrigin => true,
+        ])->setRequestAllowedMethods([
+            'GET' => true,
+        ])
+            ->setCheckHost(true);
+        $this->assertNotNull($analyzer = Analyzer::instance($settings));
+
+        //
+        $this->theseHeadersWillBeGotOnce([
+            CorsRequestHeaders::HOST   => [$this->getServerHost('', null)],
+            CorsRequestHeaders::ORIGIN => [$allowedOrigin],
+        ]);
+
+        $this->existenceOfTheseHeadersWillBeCheckedOnce([
+            CorsRequestHeaders::ORIGIN => true,
+        ]);
+
+        $this->thisMethodWillBeGotOnce('GET');
+
+        $result = $analyzer->analyze($this->request);
+
+        $this->assertEquals(AnalysisResultInterface::TYPE_ACTUAL_REQUEST, $result->getRequestType());
+        $this->assertEquals([
+            CorsResponseHeaders::ALLOW_ORIGIN      => $allowedOrigin,
             CorsResponseHeaders::VARY              => CorsRequestHeaders::ORIGIN,
         ], $result->getResponseHeaders());
     }
@@ -427,13 +467,16 @@ class AnalyzerTest extends BaseTestCase
     }
 
     /**
-     * @param string $schema
+     * @param string   $schema
+     * @param null|int $port
      *
      * @return string
      */
-    private function getServerHost($schema = '')
+    private function getServerHost($schema = '', $port = 123)
     {
-        return empty($schema) === true ? 'example.com:123' : "$schema://example.com:123";
+        $value = (empty($schema) === true ? 'example.com' : "$schema://example.com") . ($port === null ? '' : ":$port");
+
+        return $value;
     }
 
     /**

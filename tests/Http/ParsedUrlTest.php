@@ -30,11 +30,11 @@ class ParsedUrlTest extends BaseTestCase
      */
     public function testParseStringUrlWithDefaultPort()
     {
-        $url = $this->getUrlFromString('http://www.host.com/ignore-this-part');
+        $url = $this->createParsedUrl('http://www.host.com/ignore-this-part');
 
         $this->assertEquals('http', $url->getScheme());
         $this->assertEquals('www.host.com', $url->getHost());
-        $this->assertEquals(ParsedUrlInterface::DEFAULT_PORT, $url->getPort());
+        $this->assertEquals(null, $url->getPort());
         $this->assertEquals('http://www.host.com', $url->getOrigin());
     }
 
@@ -43,7 +43,7 @@ class ParsedUrlTest extends BaseTestCase
      */
     public function testParseStringUrlWithPort()
     {
-        $url = $this->getUrlFromString('http://host:100/ignore-this-part');
+        $url = $this->createParsedUrl('http://host:100/ignore-this-part');
 
         $this->assertEquals('http', $url->getScheme());
         $this->assertEquals('host', $url->getHost());
@@ -56,11 +56,11 @@ class ParsedUrlTest extends BaseTestCase
      */
     public function testParseStringUrlWithPortNoScheme()
     {
-        $url = $this->getUrlFromString('//host/ignore-this-part');
+        $url = $this->createParsedUrl('//host/ignore-this-part');
 
         $this->assertEquals('', $url->getScheme());
         $this->assertEquals('host', $url->getHost());
-        $this->assertEquals(80, $url->getPort());
+        $this->assertEquals(null, $url->getPort());
         $this->assertEquals('//host', $url->getOrigin());
     }
 
@@ -71,7 +71,7 @@ class ParsedUrlTest extends BaseTestCase
      */
     public function testParseInvalidString()
     {
-        $this->getUrlFromString('http://:80');
+        $this->createParsedUrl('http://:80');
     }
 
     /**
@@ -79,8 +79,8 @@ class ParsedUrlTest extends BaseTestCase
      */
     public function testCompareEqualStringOrigins()
     {
-        $url1 = $this->getUrlFromString('https://host.com:100/query');
-        $url2 = $this->getUrlFromString('https://host.com:100/query');
+        $url1 = $this->createParsedUrl('https://host.com:100/query');
+        $url2 = $this->createParsedUrl('https://host.com:100/query');
 
         $this->assertTrue($url1->isSchemeEqual($url2));
         $this->assertTrue($url1->isHostEqual($url2));
@@ -92,8 +92,8 @@ class ParsedUrlTest extends BaseTestCase
      */
     public function testCompareNonEqualStringOrigins()
     {
-        $url1 = $this->getUrlFromString('http://host1.com:100/query');
-        $url2 = $this->getUrlFromString('https://host2.com:200/query');
+        $url1 = $this->createParsedUrl('http://host1.com:100/query');
+        $url2 = $this->createParsedUrl('https://host2.com:200/query');
 
         $this->assertFalse($url1->isSchemeEqual($url2));
         $this->assertFalse($url1->isHostEqual($url2));
@@ -105,7 +105,7 @@ class ParsedUrlTest extends BaseTestCase
      */
     public function testParseArrayUrl()
     {
-        $url = $this->getUrlFromString([
+        $url = $this->createParsedUrl([
             'scheme' => 'http',
             'host'   => 'host',
             'query'  => 'ignore-this-part',
@@ -113,7 +113,7 @@ class ParsedUrlTest extends BaseTestCase
 
         $this->assertEquals('http', $url->getScheme());
         $this->assertEquals('host', $url->getHost());
-        $this->assertEquals(ParsedUrlInterface::DEFAULT_PORT, $url->getPort());
+        $this->assertEquals(null, $url->getPort());
         $this->assertEquals('http://host', $url->getOrigin());
     }
     /**
@@ -121,16 +121,16 @@ class ParsedUrlTest extends BaseTestCase
      */
     public function testToString()
     {
-        $url = $this->getUrlFromString('http://www.host.com/ignore-this-part');
+        $url = $this->createParsedUrl('http://www.host.com/ignore-this-part');
         $this->assertEquals('http://www.host.com', (string)$url);
     }
 
     /**
-     * @param string $url
+     * @param string|array $url
      *
      * @return ParsedUrlInterface
      */
-    private function getUrlFromString($url)
+    private function createParsedUrl($url)
     {
         $this->assertNotNull($url = FactoryTest::createFactory()->createParsedUrl($url));
         return $url;

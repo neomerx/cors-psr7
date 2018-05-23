@@ -317,13 +317,28 @@ class Analyzer implements AnalyzerInterface
      */
     protected function isSameHost(RequestInterface $request, ParsedUrlInterface $serverOrigin)
     {
-        $host    = $this->getRequestHostHeader($request);
-        $hostUrl = $host === null ? null : $this->factory->createParsedUrl($host);
+        $host = $this->getRequestHostHeader($request);
 
+        // parse `Host` header
+        //
+        // According to https://tools.ietf.org/html/rfc7230#section-5.4 `Host` header could be
+        //
+        //                     "uri-host" OR "uri-host:port"
+        //
+        // `parse_url` function thinks the first value is `path` and the second is `host` with `port`
+        // which is a bit annoying so...
+        $portOrNull = parse_url($host, PHP_URL_PORT);
+        $hostUrl    = $portOrNull === null ? $host : parse_url($host, PHP_URL_HOST);
+
+        // Neither MDN, nor RFC tell anything definitive about Host header comparison.
+        // Browsers such as Firefox and Chrome do not add the optional port for
+        // HTTP (80) and HTTPS (443).
+        // So we require port match only if it specified in settings.
+
+        $isHostUrlMatch = strcasecmp($serverOrigin->getHost(), $hostUrl) === 0;
         $isSameHost =
-            $hostUrl !== null &&
-            $serverOrigin->isPortEqual($hostUrl) === true &&
-            $serverOrigin->isHostEqual($hostUrl) === true;
+            $isHostUrlMatch === true &&
+            ($serverOrigin->getPort() === null || $serverOrigin->getPort() === $portOrNull);
 
         return $isSameHost;
     }

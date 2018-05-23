@@ -12,8 +12,6 @@ matrix:
       - php vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover
       after_script:
       - php vendor/bin/ocular code-coverage:upload --format=php-clover coverage.clover
-  allow_failures:
-    - php: 7.2
 before_script:
 - travis_retry composer self-update
 - travis_retry composer install --no-interaction --prefer-dist

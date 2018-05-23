@@ -70,7 +70,7 @@ class ParsedUrl implements ParsedUrlInterface
 
         $this->scheme = $this->getArrayValue($parsedUrl, self::URL_KEY_SCHEME);
         $this->host   = $this->getArrayValue($parsedUrl, self::URL_KEY_HOST);
-        $this->port   = (int)$this->getArrayValue($parsedUrl, self::URL_KEY_PORT, self::DEFAULT_PORT);
+        $this->port   = $this->getArrayValue($parsedUrl, self::URL_KEY_PORT);
     }
 
     /**
@@ -105,7 +105,7 @@ class ParsedUrl implements ParsedUrlInterface
         if ($this->urlAsString === null) {
             $url = $this->scheme === null ? '' : $this->scheme . ':';
             $url .= $this->host === null  ? '' : '//' . $this->host;
-            $url .= $this->port === self::DEFAULT_PORT ? '' : ':' . $this->port;
+            $url .= ($this->port === null || $this->port === self::DEFAULT_PORT) ? '' : ':' . $this->port;
 
             $this->urlAsString = $url;
         }
