@@ -46,7 +46,7 @@ class Settings implements SettingsStrategyInterface
     const VALUE_ALLOW_ALL_HEADERS = '*';
 
     /** Settings key */
-    const KEY_SERVER_ORIGIN = 0;
+    const KEY_SERVER_ORIGIN = 'keyServerOrigin';
 
     /**
      * @deprecated Server Scheme is not used for `Host` header comparison anymore. You should remove it from settings.
@@ -62,31 +62,31 @@ class Settings implements SettingsStrategyInterface
     const KEY_SERVER_ORIGIN_PORT = 'port';
 
     /** Settings key */
-    const KEY_ALLOWED_ORIGINS = 1;
+    const KEY_ALLOWED_ORIGINS = 'keyAllowedOrigins';
 
     /** Settings key */
-    const KEY_ALLOWED_METHODS = 2;
+    const KEY_ALLOWED_METHODS = 'keyAllowedMethods';
 
     /** Settings key */
-    const KEY_ALLOWED_HEADERS = 3;
+    const KEY_ALLOWED_HEADERS = 'keyAllowedHeaders';
 
     /** Settings key */
-    const KEY_EXPOSED_HEADERS = 4;
+    const KEY_EXPOSED_HEADERS = 'keyExposedHeaders';
 
     /** Settings key */
-    const KEY_IS_USING_CREDENTIALS = 5;
+    const KEY_IS_USING_CREDENTIALS = 'keyIsUsingCredentials';
 
     /** Settings key */
-    const KEY_FLIGHT_CACHE_MAX_AGE = 6;
+    const KEY_FLIGHT_CACHE_MAX_AGE = 'keyFlightCacheMaxAge';
 
     /** Settings key */
-    const KEY_IS_FORCE_ADD_METHODS = 7;
+    const KEY_IS_FORCE_ADD_METHODS = 'keyIsForceAddMethods';
 
     /** Settings key */
-    const KEY_IS_FORCE_ADD_HEADERS = 8;
+    const KEY_IS_FORCE_ADD_HEADERS = 'keyIsForceAddHeaders';
 
     /** Settings key */
-    const KEY_IS_CHECK_HOST = 9;
+    const KEY_IS_CHECK_HOST = 'keyIsCheckHost';
 
     /**
      * @var array
