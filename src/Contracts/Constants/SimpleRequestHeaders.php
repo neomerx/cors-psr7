@@ -1,7 +1,9 @@
-<?php namespace Neomerx\Cors\Contracts\Constants;
+<?php declare(strict_types=1);
+
+namespace Neomerx\Cors\Contracts\Constants;
 
 /**
- * Copyright 2015 info@neomerx.com (www.neomerx.com)
+ * Copyright 2015-2019 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,42 +23,22 @@
  *
  * @package Neomerx\Cors
  *
- * @see http://www.w3.org/TR/cors/#terminology
+ * @see     http://www.w3.org/TR/cors/#terminology
  */
 interface SimpleRequestHeaders
 {
     /**
      * Header name
      */
-    const ACCEPT = 'accept';
+    const LC_ACCEPT = 'accept';
 
     /**
      * Header name
      */
-    const ACCEPT_LANGUAGE = 'accept-language';
+    const LC_ACCEPT_LANGUAGE = 'accept-language';
 
     /**
      * Header name
      */
-    const CONTENT_LANGUAGE = 'content-language';
-
-    /**
-     * Header name
-     */
-    const CONTENT_TYPE = 'content-type';
-
-    /**
-     * With this media type header 'Content-Type' considered as simple
-     */
-    const VALUE_CONTENT_TYPE_FORM_URLENCODED = 'application/x-www-form-urlencoded';
-
-    /**
-     * With this media type header 'Content-Type' considered as simple
-     */
-    const VALUE_CONTENT_TYPE_FORM_DATA = 'multipart/form-data';
-
-    /**
-     * With this media type header 'Content-Type' considered as simple
-     */
-    const VALUE_CONTENT_TYPE_TEXT = 'text/plain';
+    const LC_CONTENT_LANGUAGE = 'content-language';
 }

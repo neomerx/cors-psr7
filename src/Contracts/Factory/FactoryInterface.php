@@ -1,7 +1,9 @@
-<?php namespace Neomerx\Cors\Contracts\Factory;
+<?php declare(strict_types=1);
+
+namespace Neomerx\Cors\Contracts\Factory;
 
 /**
- * Copyright 2015 info@neomerx.com (www.neomerx.com)
+ * Copyright 2015-2019 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +18,9 @@
  * limitations under the License.
  */
 
-use \Neomerx\Cors\Contracts\AnalyzerInterface;
-use \Neomerx\Cors\Contracts\AnalysisResultInterface;
-use \Neomerx\Cors\Contracts\Http\ParsedUrlInterface;
-use \Neomerx\Cors\Contracts\AnalysisStrategyInterface;
+use Neomerx\Cors\Contracts\AnalysisResultInterface;
+use Neomerx\Cors\Contracts\AnalysisStrategyInterface;
+use Neomerx\Cors\Contracts\AnalyzerInterface;
 
 /**
  * @package Neomerx\Cors
@@ -33,7 +34,7 @@ interface FactoryInterface
      *
      * @return AnalyzerInterface
      */
-    public function createAnalyzer(AnalysisStrategyInterface $strategy);
+    public function createAnalyzer(AnalysisStrategyInterface $strategy): AnalyzerInterface;
 
     /**
      * Create request analysis result.
@@ -43,14 +44,5 @@ interface FactoryInterface
      *
      * @return AnalysisResultInterface
      */
-    public function createAnalysisResult($requestType, array $responseHeaders = []);
-
-    /**
-     * Create URL either from string URL or result from parse_url() function.
-     *
-     * @param string|array $url
-     *
-     * @return ParsedUrlInterface
-     */
-    public function createParsedUrl($url);
+    public function createAnalysisResult(int $requestType, array $responseHeaders = []): AnalysisResultInterface;
 }

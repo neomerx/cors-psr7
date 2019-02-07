@@ -1,7 +1,7 @@
 <?php namespace Neomerx\Tests\Cors;
 
 /**
- * Copyright 2015 info@neomerx.com (www.neomerx.com)
+ * Copyright 2015-2019 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,16 @@
  * limitations under the License.
  */
 
-use \Mockery;
-use \Mockery\MockInterface;
-use \Neomerx\Cors\Analyzer;
-use \Psr\Log\LoggerInterface;
-use \Neomerx\Cors\Strategies\Settings;
-use \Psr\Http\Message\RequestInterface;
-use \Neomerx\Cors\Contracts\AnalyzerInterface;
-use \Neomerx\Cors\Contracts\AnalysisResultInterface;
-use \Neomerx\Cors\Contracts\Constants\CorsRequestHeaders;
-use \Neomerx\Cors\Contracts\Constants\CorsResponseHeaders;
+use Mockery;
+use Mockery\MockInterface;
+use Neomerx\Cors\Analyzer;
+use Neomerx\Cors\Contracts\AnalysisResultInterface;
+use Neomerx\Cors\Contracts\AnalyzerInterface;
+use Neomerx\Cors\Contracts\Constants\CorsRequestHeaders;
+use Neomerx\Cors\Contracts\Constants\CorsResponseHeaders;
+use Neomerx\Cors\Strategies\Settings;
+use Psr\Http\Message\RequestInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * NOTE: This test suite uses AppTestSettings and its static properties.
@@ -54,55 +54,68 @@ class AnalyzerTest extends BaseTestCase
     /**
      * @inheritdoc
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
-        $this->settings = new Settings();
-        $this->settings->setServerOrigin([
-            'scheme' => 'http',
-            'host'   => 'example.com',
-            'port'   => 123,
-        ])->setRequestAllowedOrigins([
-            'http://good.example.com:321'                => true,
-            'http://evil.example.com:123'                => null,
-            CorsResponseHeaders::VALUE_ALLOW_ORIGIN_ALL  => null,
-            CorsResponseHeaders::VALUE_ALLOW_ORIGIN_NULL => null,
-        ])->setRequestAllowedMethods([
-            'GET'    => true,
-            'PATCH'  => null,
-            'POST'   => true,
-            'PUT'    => null,
-            'DELETE' => true,
-        ])->setRequestAllowedHeaders([
-            'content-type'            => true,
-            'some-disabled-header'    => null,
-            'x-enabled-custom-header' => true,
-        ])->setResponseExposedHeaders([
-            'Content-Type'      => true,
-            'X-Custom-Header'   => true,
-            'X-Disabled-Header' => null,
+        $settings = new Settings();
+        $settings->init(
+            'http',
+            'example.com',
+            123
+        )->setAllowedOrigins([
+            'http://good.example.com:321',
+        ])->setAllowedMethods([
+            'GET',
+            'POST',
+            'DELETE',
+        ])->setAllowedHeaders([
+            'Content-Type',
+            'X-Enabled-Custom-Header',
+        ])->setExposedHeaders([
+            'Content-Type',
+            'X-Custom-Header',
         ])
-            ->setCheckHost(true)
-            ->setRequestCredentialsSupported(true);
+            ->enableCheckHost()
+            ->setCredentialsSupported();
+
+        $this->settings = (new Settings())->setData($settings->getData());
+
         $this->assertNotNull($this->analyzer = Analyzer::instance($this->settings));
 
-        $this->request  = Mockery::mock(RequestInterface::class);
+        $this->request = Mockery::mock(RequestInterface::class);
+    }
+
+    /**
+     * Test settings hide default ports for HTTP(S).
+     */
+    public function testSettingsHideDefaultPorts(): void
+    {
+        $settings = (new Settings())->init('http', 'example.com', 80);
+        $this->assertNull($settings->getServerOriginPort());
+
+        $settings = (new Settings())->init('https', 'example.com', 443);
+        $this->assertNull($settings->getServerOriginPort());
+
+        // check 80 works only for HTTP and 443 only for HTTPS
+        $settings = (new Settings())->init('http', 'example.com', 443);
+        $this->assertNotNull($settings->getServerOriginPort());
+
+        $settings = (new Settings())->init('https', 'example.com', 80);
+        $this->assertNotNull($settings->getServerOriginPort());
     }
 
     /**
      * Test bad request (wrong Host header).
      */
-    public function testBadRequestNoHost()
+    public function testBadRequestNoHost(): void
     {
         // 1 time for check...
-        $this->theseHeadersWillBeGotOnce([
-            CorsRequestHeaders::HOST => ['evil.com'],
-        ]);
-        // ... second time for logs
-        $this->theseHeadersWillBeGotOnce([
-            CorsRequestHeaders::HOST => ['evil.com'],
-        ]);
+        $this->theseHeadersWillBeGotOnce(
+            [
+                CorsRequestHeaders::HOST => ['evil.com'],
+            ]
+        );
 
         $result = $this->analyzer->analyze($this->request);
 
@@ -113,16 +126,20 @@ class AnalyzerTest extends BaseTestCase
     /**
      * Test not CORS request (no Origin header).
      */
-    public function testNotCorsNoOrigin()
+    public function testNotCorsNoOrigin(): void
     {
-        $this->theseHeadersWillBeGotOnce([
-            CorsRequestHeaders::HOST   => [$this->getServerHost()],
-            CorsRequestHeaders::ORIGIN => [],
-        ]);
+        $this->theseHeadersWillBeGotOnce(
+            [
+                CorsRequestHeaders::HOST   => [$this->getServerHost()],
+                CorsRequestHeaders::ORIGIN => [],
+            ]
+        );
 
-        $this->existenceOfTheseHeadersWillBeCheckedOnce([
-            CorsRequestHeaders::ORIGIN => true,
-        ]);
+        $this->existenceOfTheseHeadersWillBeCheckedOnce(
+            [
+                CorsRequestHeaders::ORIGIN => true,
+            ]
+        );
 
         $result = $this->analyzer->analyze($this->request);
 
@@ -133,16 +150,20 @@ class AnalyzerTest extends BaseTestCase
     /**
      * Test not CORS request (Origin identical to server's one).
      */
-    public function testNotCorsOriginIdenticalToServer()
+    public function testNotCorsOriginIdenticalToServer(): void
     {
-        $this->theseHeadersWillBeGotOnce([
-            CorsRequestHeaders::HOST   => [$this->getServerHost()],
-            CorsRequestHeaders::ORIGIN => [$this->getServerHost('http')],
-        ]);
+        $this->theseHeadersWillBeGotOnce(
+            [
+                CorsRequestHeaders::HOST   => [$this->getServerHost()],
+                CorsRequestHeaders::ORIGIN => [$this->getServerHost('http')],
+            ]
+        );
 
-        $this->existenceOfTheseHeadersWillBeCheckedOnce([
-            CorsRequestHeaders::ORIGIN => true,
-        ]);
+        $this->existenceOfTheseHeadersWillBeCheckedOnce(
+            [
+                CorsRequestHeaders::ORIGIN => true,
+            ]
+        );
 
         $result = $this->analyzer->analyze($this->request);
 
@@ -151,13 +172,13 @@ class AnalyzerTest extends BaseTestCase
     }
 
     /**
-     * Test not CORS request (not allowed Origin header).
+     * Test request will be considered as CORS if only port differs.
      */
-    public function testNotCorsNotAllowedOrigin()
+    public function testIsCrossOriginIfDifferentPort(): void
     {
         $this->theseHeadersWillBeGotOnce([
             CorsRequestHeaders::HOST   => [$this->getServerHost()],
-            CorsRequestHeaders::ORIGIN => ['http://some-devil-host.com'],
+            CorsRequestHeaders::ORIGIN => [$this->getServerHost('', 321)],
         ]);
 
         $this->existenceOfTheseHeadersWillBeCheckedOnce([
@@ -171,18 +192,66 @@ class AnalyzerTest extends BaseTestCase
     }
 
     /**
-     * Test if 'file://' as origin.
+     * Test request will be considered as CORS if only schema differs.
      */
-    public function testNotCorsFileOrigin()
+    public function testIsCrossOriginIfDifferentSchema(): void
     {
         $this->theseHeadersWillBeGotOnce([
             CorsRequestHeaders::HOST   => [$this->getServerHost()],
-            CorsRequestHeaders::ORIGIN => ['file://'],
+            CorsRequestHeaders::ORIGIN => [$this->getServerHost('https')],
         ]);
 
         $this->existenceOfTheseHeadersWillBeCheckedOnce([
             CorsRequestHeaders::ORIGIN => true,
         ]);
+
+        $result = $this->analyzer->analyze($this->request);
+
+        $this->assertEquals(AnalysisResultInterface::ERR_ORIGIN_NOT_ALLOWED, $result->getRequestType());
+        $this->assertEquals([], $result->getResponseHeaders());
+    }
+
+    /**
+     * Test not CORS request (not allowed Origin header).
+     */
+    public function testNotCorsNotAllowedOrigin(): void
+    {
+        $this->theseHeadersWillBeGotOnce(
+            [
+                CorsRequestHeaders::HOST   => [$this->getServerHost()],
+                CorsRequestHeaders::ORIGIN => ['http://some-devil-host.com'],
+            ]
+        );
+
+        $this->existenceOfTheseHeadersWillBeCheckedOnce(
+            [
+                CorsRequestHeaders::ORIGIN => true,
+            ]
+        );
+
+        $result = $this->analyzer->analyze($this->request);
+
+        $this->assertEquals(AnalysisResultInterface::ERR_ORIGIN_NOT_ALLOWED, $result->getRequestType());
+        $this->assertEquals([], $result->getResponseHeaders());
+    }
+
+    /**
+     * Test if 'file://' as origin.
+     */
+    public function testNotCorsFileOrigin(): void
+    {
+        $this->theseHeadersWillBeGotOnce(
+            [
+                CorsRequestHeaders::HOST   => [$this->getServerHost()],
+                CorsRequestHeaders::ORIGIN => ['file://'],
+            ]
+        );
+
+        $this->existenceOfTheseHeadersWillBeCheckedOnce(
+            [
+                CorsRequestHeaders::ORIGIN => true,
+            ]
+        );
 
         $result = $this->analyzer->analyze($this->request);
 
@@ -193,86 +262,105 @@ class AnalyzerTest extends BaseTestCase
     /**
      * Test actual CORS request.
      */
-    public function testValidActualCorsRequest()
+    public function testValidActualCorsRequest(): void
     {
         $allowedOrigin = $this->getFirstAllowedOriginFromSettings();
-        $this->theseHeadersWillBeGotOnce([
-            CorsRequestHeaders::HOST   => [$this->getServerHost()],
-            CorsRequestHeaders::ORIGIN => [$allowedOrigin],
-        ]);
+        $this->theseHeadersWillBeGotOnce(
+            [
+                CorsRequestHeaders::HOST   => [$this->getServerHost()],
+                CorsRequestHeaders::ORIGIN => [$allowedOrigin],
+            ]
+        );
 
-        $this->existenceOfTheseHeadersWillBeCheckedOnce([
-            CorsRequestHeaders::ORIGIN => true,
-        ]);
+        $this->existenceOfTheseHeadersWillBeCheckedOnce(
+            [
+                CorsRequestHeaders::ORIGIN => true,
+            ]
+        );
 
         $this->thisMethodWillBeGotOnce('GET');
 
         $result = $this->analyzer->analyze($this->request);
 
         $this->assertEquals(AnalysisResultInterface::TYPE_ACTUAL_REQUEST, $result->getRequestType());
-        $this->assertEquals([
-            CorsResponseHeaders::EXPOSE_HEADERS    => ['Content-Type', 'X-Custom-Header'],
-            CorsResponseHeaders::ALLOW_ORIGIN      => $allowedOrigin,
-            CorsResponseHeaders::ALLOW_CREDENTIALS => CorsResponseHeaders::VALUE_ALLOW_CREDENTIALS_TRUE,
-            CorsResponseHeaders::VARY              => CorsRequestHeaders::ORIGIN,
-        ], $result->getResponseHeaders());
+        $this->assertEquals(
+            [
+                CorsResponseHeaders::EXPOSE_HEADERS    => 'X-Custom-Header',
+                CorsResponseHeaders::ALLOW_ORIGIN      => $allowedOrigin,
+                CorsResponseHeaders::ALLOW_CREDENTIALS => CorsResponseHeaders::VALUE_ALLOW_CREDENTIALS_TRUE,
+                CorsResponseHeaders::VARY              => CorsRequestHeaders::ORIGIN,
+            ],
+            $result->getResponseHeaders()
+        );
     }
 
     /**
      * Test actual CORS request with default server port (e.g. 80 or 443 which is omitted in Host header).
      */
-    public function testValidActualCorsRequestWithOmittedHostPort()
+    public function testValidActualCorsRequestWithOmittedHostPort(): void
     {
         $allowedOrigin = 'http://good.example.com:321';
 
         // CORS settings
         $settings = new Settings();
-        $settings->setServerOrigin([
-            'host' => 'example.com'
-        ])->setRequestAllowedOrigins([
-            $allowedOrigin => true,
-        ])->setRequestAllowedMethods([
-            'GET' => true,
-        ])
-            ->setCheckHost(true);
+        $settings->init(
+            'http',
+            'example.com',
+            80
+        )->setAllowedOrigins([
+            $allowedOrigin,
+        ])->setAllowedMethods([
+                'GET',
+        ])->enableCheckHost();
         $this->assertNotNull($analyzer = Analyzer::instance($settings));
 
         //
-        $this->theseHeadersWillBeGotOnce([
-            CorsRequestHeaders::HOST   => [$this->getServerHost('', null)],
-            CorsRequestHeaders::ORIGIN => [$allowedOrigin],
-        ]);
+        $this->theseHeadersWillBeGotOnce(
+            [
+                CorsRequestHeaders::HOST   => [$this->getServerHost('', null)],
+                CorsRequestHeaders::ORIGIN => [$allowedOrigin],
+            ]
+        );
 
-        $this->existenceOfTheseHeadersWillBeCheckedOnce([
-            CorsRequestHeaders::ORIGIN => true,
-        ]);
+        $this->existenceOfTheseHeadersWillBeCheckedOnce(
+            [
+                CorsRequestHeaders::ORIGIN => true,
+            ]
+        );
 
         $this->thisMethodWillBeGotOnce('GET');
 
         $result = $analyzer->analyze($this->request);
 
         $this->assertEquals(AnalysisResultInterface::TYPE_ACTUAL_REQUEST, $result->getRequestType());
-        $this->assertEquals([
-            CorsResponseHeaders::ALLOW_ORIGIN      => $allowedOrigin,
-            CorsResponseHeaders::VARY              => CorsRequestHeaders::ORIGIN,
-        ], $result->getResponseHeaders());
+        $this->assertEquals(
+            [
+                CorsResponseHeaders::ALLOW_ORIGIN => $allowedOrigin,
+                CorsResponseHeaders::VARY         => CorsRequestHeaders::ORIGIN,
+            ],
+            $result->getResponseHeaders()
+        );
     }
 
     /**
      * Test invalid CORS pre-flight request (no 'Access-Control-Request-Method' header).
      */
-    public function testNotCorsRequestMethod()
+    public function testNotCorsRequestMethod(): void
     {
         $allowedOrigin = $this->getFirstAllowedOriginFromSettings();
-        $this->theseHeadersWillBeGotOnce([
-            CorsRequestHeaders::HOST   => [$this->getServerHost()],
-            CorsRequestHeaders::ORIGIN => [$allowedOrigin],
-            CorsRequestHeaders::METHOD => [],
-        ]);
+        $this->theseHeadersWillBeGotOnce(
+            [
+                CorsRequestHeaders::HOST   => [$this->getServerHost()],
+                CorsRequestHeaders::ORIGIN => [$allowedOrigin],
+                CorsRequestHeaders::METHOD => [],
+            ]
+        );
 
-        $this->existenceOfTheseHeadersWillBeCheckedOnce([
-            CorsRequestHeaders::ORIGIN => true,
-        ]);
+        $this->existenceOfTheseHeadersWillBeCheckedOnce(
+            [
+                CorsRequestHeaders::ORIGIN => true,
+            ]
+        );
 
         $this->thisMethodWillBeGotOnce('OPTIONS');
 
@@ -285,20 +373,24 @@ class AnalyzerTest extends BaseTestCase
     /**
      * Test CORS pre-flight request with not allowed method.
      */
-    public function testPreFlightWithNotAllowedMethod()
+    public function testPreFlightWithNotAllowedMethod(): void
     {
         $allowedOrigin    = $this->getFirstAllowedOriginFromSettings();
         $notAllowedMethod = $this->getFirstNotAllowedMethod();
-        $this->theseHeadersWillBeGotOnce([
-            CorsRequestHeaders::HOST    => [$this->getServerHost()],
-            CorsRequestHeaders::ORIGIN  => [$allowedOrigin],
-            CorsRequestHeaders::METHOD  => [$notAllowedMethod],
-            CorsRequestHeaders::HEADERS => [],
-        ]);
+        $this->theseHeadersWillBeGotOnce(
+            [
+                CorsRequestHeaders::HOST    => [$this->getServerHost()],
+                CorsRequestHeaders::ORIGIN  => [$allowedOrigin],
+                CorsRequestHeaders::METHOD  => [$notAllowedMethod],
+                CorsRequestHeaders::HEADERS => [],
+            ]
+        );
 
-        $this->existenceOfTheseHeadersWillBeCheckedOnce([
-            CorsRequestHeaders::ORIGIN => true,
-        ]);
+        $this->existenceOfTheseHeadersWillBeCheckedOnce(
+            [
+                CorsRequestHeaders::ORIGIN => true,
+            ]
+        );
 
         $this->thisMethodWillBeGotOnce('OPTIONS');
 
@@ -311,21 +403,25 @@ class AnalyzerTest extends BaseTestCase
     /**
      * Test CORS pre-flight request with not allowed header.
      */
-    public function testPreFlightWithNotAllowedHeader()
+    public function testPreFlightWithNotAllowedHeader(): void
     {
         $allowedOrigin    = $this->getFirstAllowedOriginFromSettings();
         $allowedMethod    = $this->getFirstAllowedMethod();
         $notAllowedHeader = $this->getFirstNotAllowedHeader();
-        $this->theseHeadersWillBeGotOnce([
-            CorsRequestHeaders::HOST    => [$this->getServerHost()],
-            CorsRequestHeaders::ORIGIN  => [$allowedOrigin],
-            CorsRequestHeaders::METHOD  => [$allowedMethod],
-            CorsRequestHeaders::HEADERS => [$notAllowedHeader],
-        ]);
+        $this->theseHeadersWillBeGotOnce(
+            [
+                CorsRequestHeaders::HOST    => [$this->getServerHost()],
+                CorsRequestHeaders::ORIGIN  => [$allowedOrigin],
+                CorsRequestHeaders::METHOD  => [$allowedMethod],
+                CorsRequestHeaders::HEADERS => [$notAllowedHeader],
+            ]
+        );
 
-        $this->existenceOfTheseHeadersWillBeCheckedOnce([
-            CorsRequestHeaders::ORIGIN => true,
-        ]);
+        $this->existenceOfTheseHeadersWillBeCheckedOnce(
+            [
+                CorsRequestHeaders::ORIGIN => true,
+            ]
+        );
 
         $this->thisMethodWillBeGotOnce('OPTIONS');
 
@@ -338,83 +434,97 @@ class AnalyzerTest extends BaseTestCase
     /**
      * Test valid CORS pre-flight request.
      */
-    public function testValidPreFlight()
+    public function testValidPreFlight(): void
     {
         $allowedOrigin      = $this->getFirstAllowedOriginFromSettings();
         $allowedMethod      = $this->getFirstAllowedMethod();
-        $allowedHeadersList = $this->getAllowedHeadersList();
-        $this->theseHeadersWillBeGotOnce([
-            CorsRequestHeaders::HOST    => [$this->getServerHost()],
-            CorsRequestHeaders::ORIGIN  => [$allowedOrigin],
-            CorsRequestHeaders::METHOD  => [$allowedMethod],
-            CorsRequestHeaders::HEADERS => [$allowedHeadersList],
-        ]);
+        $allowedHeadersList = '';
+        $this->theseHeadersWillBeGotOnce(
+            [
+                CorsRequestHeaders::HOST    => [$this->getServerHost()],
+                CorsRequestHeaders::ORIGIN  => [$allowedOrigin],
+                CorsRequestHeaders::METHOD  => [$allowedMethod],
+                CorsRequestHeaders::HEADERS => [$allowedHeadersList],
+            ]
+        );
 
-        $this->existenceOfTheseHeadersWillBeCheckedOnce([
-            CorsRequestHeaders::ORIGIN => true,
-        ]);
+        $this->existenceOfTheseHeadersWillBeCheckedOnce(
+            [
+                CorsRequestHeaders::ORIGIN => true,
+            ]
+        );
 
         $this->thisMethodWillBeGotOnce('OPTIONS');
 
         $this->settings->setPreFlightCacheMaxAge(60);
-        $this->settings->setForceAddAllowedMethodsToPreFlightResponse(true);
-        $this->settings->setForceAddAllowedHeadersToPreFlightResponse(true);
+        $this->settings->enableAddAllowedMethodsToPreFlightResponse();
+        $this->settings->enableAddAllowedHeadersToPreFlightResponse();
 
         $result = $this->analyzer->analyze($this->request);
 
         $this->assertEquals(AnalysisResultInterface::TYPE_PRE_FLIGHT_REQUEST, $result->getRequestType());
-        $this->assertEquals([
-            CorsResponseHeaders::ALLOW_ORIGIN      => $allowedOrigin,
-            CorsResponseHeaders::ALLOW_CREDENTIALS => CorsResponseHeaders::VALUE_ALLOW_CREDENTIALS_TRUE,
-            CorsResponseHeaders::VARY              => CorsRequestHeaders::ORIGIN,
-            CorsResponseHeaders::MAX_AGE           => 60,
-            CorsResponseHeaders::ALLOW_METHODS     => 'GET, POST, DELETE',
-            CorsResponseHeaders::ALLOW_HEADERS     => 'content-type, x-enabled-custom-header',
-        ], $result->getResponseHeaders());
+        $this->assertEquals(
+            [
+                CorsResponseHeaders::ALLOW_ORIGIN      => $allowedOrigin,
+                CorsResponseHeaders::ALLOW_CREDENTIALS => CorsResponseHeaders::VALUE_ALLOW_CREDENTIALS_TRUE,
+                CorsResponseHeaders::VARY              => CorsRequestHeaders::ORIGIN,
+                CorsResponseHeaders::MAX_AGE           => 60,
+                CorsResponseHeaders::ALLOW_METHODS     => 'GET, POST, DELETE',
+                CorsResponseHeaders::ALLOW_HEADERS     => 'Content-Type, X-Enabled-Custom-Header',
+            ],
+            $result->getResponseHeaders()
+        );
     }
 
     /**
      * Test valid CORS pre-flight request.
      */
-    public function testValidPreFlightWithNoForceAddingHeaders()
+    public function testValidPreFlightWithNoForceAddingHeaders(): void
     {
         $allowedOrigin      = $this->getFirstAllowedOriginFromSettings();
         $allowedMethod      = $this->getFirstAllowedNotSimpleMethod();
         $allowedHeadersList = $this->getAllowedHeadersList();
-        $this->theseHeadersWillBeGotOnce([
-            CorsRequestHeaders::HOST    => [$this->getServerHost()],
-            CorsRequestHeaders::ORIGIN  => [$allowedOrigin],
-            CorsRequestHeaders::METHOD  => [$allowedMethod],
-            CorsRequestHeaders::HEADERS => [$allowedHeadersList],
-        ]);
+        $this->theseHeadersWillBeGotOnce(
+            [
+                CorsRequestHeaders::HOST    => [$this->getServerHost()],
+                CorsRequestHeaders::ORIGIN  => [$allowedOrigin],
+                CorsRequestHeaders::METHOD  => [$allowedMethod],
+                CorsRequestHeaders::HEADERS => [$allowedHeadersList],
+            ]
+        );
 
-        $this->existenceOfTheseHeadersWillBeCheckedOnce([
-            CorsRequestHeaders::ORIGIN => true,
-        ]);
+        $this->existenceOfTheseHeadersWillBeCheckedOnce(
+            [
+                CorsRequestHeaders::ORIGIN => true,
+            ]
+        );
 
         $this->thisMethodWillBeGotOnce('OPTIONS');
 
         $this->settings->setPreFlightCacheMaxAge(60);
-        $this->settings->setForceAddAllowedMethodsToPreFlightResponse(false);
-        $this->settings->setForceAddAllowedHeadersToPreFlightResponse(false);
+        $this->settings->disableAddAllowedMethodsToPreFlightResponse();
+        $this->settings->disableAddAllowedHeadersToPreFlightResponse();
 
         $result = $this->analyzer->analyze($this->request);
 
         $this->assertEquals(AnalysisResultInterface::TYPE_PRE_FLIGHT_REQUEST, $result->getRequestType());
-        $this->assertEquals([
-            CorsResponseHeaders::ALLOW_ORIGIN      => $allowedOrigin,
-            CorsResponseHeaders::ALLOW_CREDENTIALS => CorsResponseHeaders::VALUE_ALLOW_CREDENTIALS_TRUE,
-            CorsResponseHeaders::VARY              => CorsRequestHeaders::ORIGIN,
-            CorsResponseHeaders::MAX_AGE           => 60,
-            CorsResponseHeaders::ALLOW_METHODS     => 'GET, POST, DELETE',
-            CorsResponseHeaders::ALLOW_HEADERS     => 'content-type, x-enabled-custom-header',
-        ], $result->getResponseHeaders());
+        $this->assertEquals(
+            [
+                CorsResponseHeaders::ALLOW_ORIGIN      => $allowedOrigin,
+                CorsResponseHeaders::ALLOW_CREDENTIALS => CorsResponseHeaders::VALUE_ALLOW_CREDENTIALS_TRUE,
+                CorsResponseHeaders::VARY              => CorsRequestHeaders::ORIGIN,
+                CorsResponseHeaders::MAX_AGE           => 60,
+                CorsResponseHeaders::ALLOW_METHODS     => 'GET, POST, DELETE',
+                CorsResponseHeaders::ALLOW_HEADERS     => 'Content-Type, X-Enabled-Custom-Header',
+            ],
+            $result->getResponseHeaders()
+        );
     }
 
     /**
      * Test set logger.
      */
-    public function testSetLogger()
+    public function testSetLogger(): void
     {
         /** @var LoggerInterface $logger */
         $logger = Mockery::mock(LoggerInterface::class);

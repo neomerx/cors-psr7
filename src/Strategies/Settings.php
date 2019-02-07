@@ -1,7 +1,9 @@
-<?php namespace Neomerx\Cors\Strategies;
+<?php declare(strict_types=1);
+
+namespace Neomerx\Cors\Strategies;
 
 /**
- * Copyright 2015 info@neomerx.com (www.neomerx.com)
+ * Copyright 2015-2019 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,489 +18,660 @@
  * limitations under the License.
  */
 
-use \Neomerx\Cors\Log\LoggerAwareTrait;
-use \Psr\Http\Message\RequestInterface;
-use \Neomerx\Cors\Contracts\Http\ParsedUrlInterface;
-use \Neomerx\Cors\Contracts\Constants\CorsResponseHeaders;
-use \Neomerx\Cors\Contracts\Strategies\SettingsStrategyInterface;
+use Neomerx\Cors\Contracts\AnalysisStrategyInterface;
+use Neomerx\Cors\Contracts\Constants\SimpleResponseHeaders;
+use Neomerx\Cors\Log\LoggerAwareTrait;
+use Psr\Http\Message\RequestInterface;
 
 /**
  * Implements strategy as a simple set of setting identical for all resources and requests.
  *
  * @package Neomerx\Cors
+ *
+ * @SuppressWarnings(PHPMD.TooManyFields)
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
-class Settings implements SettingsStrategyInterface
+class Settings implements AnalysisStrategyInterface
 {
     use LoggerAwareTrait;
 
     /**
-     * 'All' value for allowed origins.
+     * @var string[]
      */
-    const VALUE_ALLOW_ORIGIN_ALL = CorsResponseHeaders::VALUE_ALLOW_ORIGIN_ALL;
+    const SIMPLE_LC_RESPONSE_HEADERS = [
+        SimpleResponseHeaders::LC_ACCEPT_LANGUAGE,
+        SimpleResponseHeaders::LC_CACHE_CONTROL,
+        SimpleResponseHeaders::LC_CONTENT_LANGUAGE,
+        SimpleResponseHeaders::LC_CONTENT_TYPE,
+        SimpleResponseHeaders::LC_EXPIRES,
+        SimpleResponseHeaders::LC_LAST_MODIFIED,
+        SimpleResponseHeaders::LC_PRAGMA,
+    ];
 
     /**
-     * 'All' values for allowed headers.
-     *
-     * @deprecated
-     * Please list all supported headers instead. 'All headers allowed' is not supported by browsers.
-     * @see https://github.com/neomerx/cors-psr7/issues/23
+     * @var string
      */
-    const VALUE_ALLOW_ALL_HEADERS = '*';
-
-    /** Settings key */
-    const KEY_SERVER_ORIGIN = 0;
+    private $serverOriginScheme;
 
     /**
-     * @deprecated Server Scheme is not used for `Host` header comparison anymore. You should remove it from settings.
-     *
-     * Settings key
+     * @var string
      */
-    const KEY_SERVER_ORIGIN_SCHEME = 'scheme';
+    private $serverOriginHost;
 
-    /** Settings key */
-    const KEY_SERVER_ORIGIN_HOST = 'host';
+    /**
+     * @var null|int
+     */
+    private $serverOriginPort;
 
-    /** Settings key */
-    const KEY_SERVER_ORIGIN_PORT = 'port';
+    /**
+     * @var bool
+     */
+    private $isPreFlightCanBeCached;
 
-    /** Settings key */
-    const KEY_ALLOWED_ORIGINS = 1;
+    /**
+     * @var int
+     */
+    private $preFlightCacheMaxAge;
 
-    /** Settings key */
-    const KEY_ALLOWED_METHODS = 2;
+    /**
+     * @var bool
+     */
+    private $isForceAddMethods;
 
-    /** Settings key */
-    const KEY_ALLOWED_HEADERS = 3;
+    /**
+     * @var bool
+     */
+    private $isForceAddHeaders;
 
-    /** Settings key */
-    const KEY_EXPOSED_HEADERS = 4;
+    /**
+     * @var bool
+     */
+    private $isUseCredentials;
 
-    /** Settings key */
-    const KEY_IS_USING_CREDENTIALS = 5;
-
-    /** Settings key */
-    const KEY_FLIGHT_CACHE_MAX_AGE = 6;
-
-    /** Settings key */
-    const KEY_IS_FORCE_ADD_METHODS = 7;
-
-    /** Settings key */
-    const KEY_IS_FORCE_ADD_HEADERS = 8;
-
-    /** Settings key */
-    const KEY_IS_CHECK_HOST = 9;
+    /**
+     * @var bool
+     */
+    private $areAllOriginsAllowed;
 
     /**
      * @var array
      */
-    protected $settings;
+    private $allowedOrigins;
 
     /**
-     * @param array $settings
+     * @var bool
      */
-    public function __construct(array $settings = null)
-    {
-        $this->setSettings($settings !== null ? $settings : $this->getDefaultSettings());
-    }
+    private $areAllMethodsAllowed;
 
     /**
-     * @inheritdoc
+     * @var array
      */
-    public function getSettings()
-    {
-        return $this->settings;
-    }
+    private $allowedLcMethods;
 
     /**
-     * @inheritdoc
+     * @var string
      */
-    public function setSettings(array $settings)
-    {
-        $this->settings = $settings;
-    }
+    private $allowedMethodsList;
 
     /**
-     * @inheritdoc
+     * @var bool
      */
-    public function getServerOrigin()
-    {
-        return $this->settings[self::KEY_SERVER_ORIGIN];
-    }
+    private $areAllHeadersAllowed;
 
     /**
-     * @inheritdoc
+     * @var array
      */
-    public function setServerOrigin($origin)
-    {
-        $this->settings[self::KEY_SERVER_ORIGIN] = is_string($origin) === true ? parse_url($origin) : $origin;
-
-        return $this;
-    }
+    private $allowedLcHeaders;
 
     /**
-     * @inheritdoc
+     * @var string
      */
-    public function isPreFlightCanBeCached(RequestInterface $request)
-    {
-        return $this->getPreFlightCacheMaxAge($request) > 0;
-    }
+    private $allowedHeadersList;
 
     /**
-     * @inheritdoc
+     * @var string
      */
-    public function getPreFlightCacheMaxAge(RequestInterface $request)
-    {
-        return $this->getValue(self::KEY_FLIGHT_CACHE_MAX_AGE, 0);
-    }
+    private $exposedHeadersList;
 
     /**
-     * @inheritdoc
+     * @var bool
      */
-    public function setPreFlightCacheMaxAge($cacheMaxAge)
-    {
-        $this->settings[self::KEY_FLIGHT_CACHE_MAX_AGE] = $cacheMaxAge;
-
-        return $this;
-    }
+    private $isCheckHost;
 
     /**
-     * @inheritdoc
-     */
-    public function isForceAddAllowedMethodsToPreFlightResponse()
-    {
-        return $this->getValue(self::KEY_IS_FORCE_ADD_METHODS, false);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setForceAddAllowedMethodsToPreFlightResponse($forceFlag)
-    {
-        $this->settings[self::KEY_IS_FORCE_ADD_METHODS] = $forceFlag;
-
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function isForceAddAllowedHeadersToPreFlightResponse()
-    {
-        return $this->getValue(self::KEY_IS_FORCE_ADD_HEADERS, false);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setForceAddAllowedHeadersToPreFlightResponse($forceFlag)
-    {
-        $this->settings[self::KEY_IS_FORCE_ADD_HEADERS] = $forceFlag;
-
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function isRequestCredentialsSupported(RequestInterface $request)
-    {
-        return $this->getValue(self::KEY_IS_USING_CREDENTIALS, false);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setRequestCredentialsSupported($isSupported)
-    {
-        $this->settings[self::KEY_IS_USING_CREDENTIALS] = $isSupported;
-
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function isRequestOriginAllowed(ParsedUrlInterface $requestOrigin)
-    {
-        // check if all origins are allowed with '*'
-        $isAllowed =
-            isset($this->settings[self::KEY_ALLOWED_ORIGINS][CorsResponseHeaders::VALUE_ALLOW_ORIGIN_ALL]);
-
-        if ($isAllowed === false) {
-            $requestOriginStr = strtolower($requestOrigin->getOrigin());
-            $isAllowed        = isset($this->settings[self::KEY_ALLOWED_ORIGINS][$requestOriginStr]);
-        }
-
-        return $isAllowed;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setRequestAllowedOrigins(array $origins)
-    {
-        $this->settings[self::KEY_ALLOWED_ORIGINS] = [];
-        foreach ($origins as $origin => $enabled) {
-            $lcOrigin                                             = strtolower($origin);
-            $this->settings[self::KEY_ALLOWED_ORIGINS][$lcOrigin] = $enabled;
-        }
-
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function isRequestMethodSupported($method)
-    {
-        $isAllowed = isset($this->settings[self::KEY_ALLOWED_METHODS][$method]);
-
-        return $isAllowed;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function isRequestAllHeadersSupported($headers)
-    {
-        $allSupported = true;
-
-        if (isset($this->settings[self::KEY_ALLOWED_HEADERS][self::VALUE_ALLOW_ALL_HEADERS]) === true) {
-            return $allSupported;
-        }
-
-        foreach ($headers as $header) {
-            $lcHeader = strtolower($header);
-            if (isset($this->settings[self::KEY_ALLOWED_HEADERS][$lcHeader]) === false) {
-                $allSupported = false;
-                $this->logInfo(
-                    'Request header is not allowed. Check config settings for Allowed Headers.',
-                    ['header' => $header]
-                );
-                break;
-            }
-        }
-
-        return $allSupported;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getRequestAllowedMethods(RequestInterface $request, $requestMethod)
-    {
-        return implode(', ', $this->getEnabledItems($this->settings[self::KEY_ALLOWED_METHODS]));
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setRequestAllowedMethods(array $methods)
-    {
-        $this->settings[self::KEY_ALLOWED_METHODS] = [];
-        foreach ($methods as $method => $enabled) {
-            $this->settings[self::KEY_ALLOWED_METHODS][$method] = $enabled;
-        }
-
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getRequestAllowedHeaders(RequestInterface $request, array $requestHeaders)
-    {
-        $headers = $this->settings[self::KEY_ALLOWED_HEADERS];
-
-        // 'all headers' is not a header actually so we remove it
-        unset($headers[self::VALUE_ALLOW_ALL_HEADERS]);
-
-        $enabled = $this->getEnabledItems($headers);
-
-        return implode(', ', $enabled);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setRequestAllowedHeaders(array $headers)
-    {
-        $this->settings[self::KEY_ALLOWED_HEADERS] = [];
-        foreach ($headers as $header => $enabled) {
-            $lcHeader                                             = strtolower($header);
-            $this->settings[self::KEY_ALLOWED_HEADERS][$lcHeader] = $enabled;
-        }
-
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getResponseExposedHeaders(RequestInterface $request)
-    {
-        return $this->getEnabledItems($this->settings[self::KEY_EXPOSED_HEADERS]);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setResponseExposedHeaders(array $headers)
-    {
-        $this->settings[self::KEY_EXPOSED_HEADERS] = $headers;
-
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function isCheckHost()
-    {
-        return $this->getValue(self::KEY_IS_CHECK_HOST, false);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setCheckHost($checkFlag)
-    {
-        $this->settings[self::KEY_IS_CHECK_HOST] = $checkFlag;
-
-        return $this;
-    }
-
-    /**
-     * Select only enabled items from $list.
+     * Sort of default constructor, though made separate to be used optionally when no cached data available.
      *
-     * @param array $list
+     * @param string $scheme
+     * @param string $host
+     * @param int    $port
+     *
+     * @return self
+     */
+    public function init(string $scheme, string $host, int $port): self
+    {
+        return $this
+            ->setServerOrigin($scheme, $host, $port)
+            ->setPreFlightCacheMaxAge(0)
+            ->setCredentialsNotSupported()
+            ->enableAllOriginsAllowed()
+            ->setAllowedOrigins([])
+            ->enableAllMethodsAllowed()
+            ->setAllowedMethods([])
+            ->enableAllHeadersAllowed()
+            ->setAllowedHeaders([])
+            ->setExposedHeaders([])
+            ->disableAddAllowedMethodsToPreFlightResponse()
+            ->disableAddAllowedHeadersToPreFlightResponse()
+            ->disableCheckHost();
+    }
+
+    /**
+     * Get internal data state. Can be used for data caching.
      *
      * @return array
      */
-    protected function getEnabledItems(array $list)
-    {
-        $items = [];
-
-        foreach ($list as $item => $enabled) {
-            if ($enabled === true) {
-                $items[] = $item;
-            }
-        }
-
-        return $items;
-    }
-
-    /**
-     * @return array
-     */
-    protected function getDefaultSettings()
+    public function getData(): array
     {
         return [
-            /**
-             * Array should be in parse_url() result format.
-             * @see http://php.net/manual/function.parse-url.php
-             *
-             * Recommendation: specify only Host.
-             * Browsers don't send port neither for HTTP(80), nor for HTTPS(443) in Host header which covers 99% cases.
-             * You should specify the port only if you want to require non-standard port in `Host` header (e.g. 8080).
-             */
-            self::KEY_SERVER_ORIGIN        => [
-                self::KEY_SERVER_ORIGIN_HOST   => '',
-                self::KEY_SERVER_ORIGIN_PORT   => ParsedUrlInterface::DEFAULT_PORT,
-            ],
-            /**
-             * A list of allowed request origins (lower-cased, no trail slashes).
-             * Value `true` enables and value `null` disables origin.
-             * If all origins '*' are enabled all settings for other origins are ignored.
-             * For example, [
-             *     'http://example.com:123'     => true,
-             *     'http://evil.com'            => null,
-             *     self::VALUE_ALLOW_ORIGIN_ALL => null,
-             * ];
-             */
-            self::KEY_ALLOWED_ORIGINS      => [],
-            /**
-             * A list of allowed request methods (case sensitive).
-             * Value `true` enables and value `null` disables method.
-             * For example, [
-             *     'GET'    => true,
-             *     'PATCH'  => true,
-             *     'POST'   => true,
-             *     'PUT'    => null,
-             *     'DELETE' => true,
-             * ];
-             * Security Note: you have to remember CORS is not access control system and you should not expect all
-             * cross-origin requests will have pre-flights. For so-called 'simple' methods with so-called 'simple'
-             * headers request will be made without pre-flight. Thus you can not restrict such requests with CORS
-             * and should use other means.
-             * For example method 'GET' without any headers or with only 'simple' headers will not have pre-flight
-             * request so disabling it will not restrict access to resource(s).
-             * You can read more on 'simple' methods at http://www.w3.org/TR/cors/#simple-method
-             */
-            self::KEY_ALLOWED_METHODS      => [],
-            /**
-             * A list of allowed request headers (lower-cased). Value `true` enables and
-             * value `null` disables header.
-             * For example, [
-             *     'content-type'                => true,
-             *     'x-custom-request-header'     => null,
-             *     self::VALUE_ALLOW_ALL_HEADERS => null,
-             * ];
-             * Security Note: you have to remember CORS is not access control system and you should not expect all
-             * cross-origin requests will have pre-flights. For so-called 'simple' methods with so-called 'simple'
-             * headers request will be made without pre-flight. Thus you can not restrict such requests with CORS
-             * and should use other means.
-             * For example method 'GET' without any headers or with only 'simple' headers will not have pre-flight
-             * request so disabling it will not restrict access to resource(s).
-             * You can read more on 'simple' headers at http://www.w3.org/TR/cors/#simple-header
-             */
-            self::KEY_ALLOWED_HEADERS      => [],
-            /**
-             * A list of headers (case insensitive) which will be made accessible to
-             * user agent (browser) in response.
-             * Value `true` enables and value `null` disables header.
-             * For example, [
-             *     'Content-Type'             => true,
-             *     'X-Custom-Response-Header' => true,
-             *     'X-Disabled-Header'        => null,
-             * ];
-             */
-            self::KEY_EXPOSED_HEADERS      => [],
-            /**
-             * If access with credentials is supported by the resource.
-             */
-            self::KEY_IS_USING_CREDENTIALS => false,
-            /**
-             * Pre-flight response cache max period in seconds.
-             */
-            self::KEY_FLIGHT_CACHE_MAX_AGE => 0,
-            /**
-             * If allowed methods should be added to pre-flight response when
-             * 'simple' method is requested (see #6.2.9 CORS).
-             * @see http://www.w3.org/TR/cors/#resource-preflight-requests
-             */
-            self::KEY_IS_FORCE_ADD_METHODS => false,
-            /**
-             * If allowed headers should be added when request headers are 'simple' and
-             * non of them is 'Content-Type' (see #6.2.10 CORS).
-             * @see http://www.w3.org/TR/cors/#resource-preflight-requests
-             */
-            self::KEY_IS_FORCE_ADD_HEADERS => false,
-            /**
-             * If request 'Host' header should be checked against server's origin.
-             */
-            self::KEY_IS_CHECK_HOST        => false,
+            $this->serverOriginScheme,
+            $this->serverOriginHost,
+            $this->serverOriginPort,
+            $this->isPreFlightCanBeCached,
+            $this->preFlightCacheMaxAge,
+            $this->isForceAddMethods,
+            $this->isForceAddHeaders,
+            $this->isUseCredentials,
+            $this->areAllOriginsAllowed,
+            $this->allowedOrigins,
+            $this->areAllMethodsAllowed,
+            $this->allowedLcMethods,
+            $this->allowedMethodsList,
+            $this->areAllHeadersAllowed,
+            $this->allowedLcHeaders,
+            $this->allowedHeadersList,
+            $this->exposedHeadersList,
+            $this->isCheckHost,
         ];
     }
 
     /**
-     * @param mixed $key
-     * @param mixed $default
+     * Set internal data state. Can be used for setting cached data.
      *
-     * @return mixed
+     * @param array $data
+     *
+     * @return self
      */
-    private function getValue($key, $default)
+    public function setData(array $data): self
     {
-        return array_key_exists($key, $this->settings) === true ? $this->settings[$key] : $default;
+        [
+            $this->serverOriginScheme,
+            $this->serverOriginHost,
+            $this->serverOriginPort,
+            $this->isPreFlightCanBeCached,
+            $this->preFlightCacheMaxAge,
+            $this->isForceAddMethods,
+            $this->isForceAddHeaders,
+            $this->isUseCredentials,
+            $this->areAllOriginsAllowed,
+            $this->allowedOrigins,
+            $this->areAllMethodsAllowed,
+            $this->allowedLcMethods,
+            $this->allowedMethodsList,
+            $this->areAllHeadersAllowed,
+            $this->allowedLcHeaders,
+            $this->allowedHeadersList,
+            $this->exposedHeadersList,
+            $this->isCheckHost,
+        ] = $data;
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getServerOriginScheme(): string
+    {
+        return $this->serverOriginScheme;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getServerOriginHost(): string
+    {
+        return $this->serverOriginHost;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getServerOriginPort(): ?int
+    {
+        return $this->serverOriginPort;
+    }
+
+    /**
+     * Set server Origin URL.
+     *
+     * @param string $scheme
+     * @param string $host
+     * @param int    $port
+     *
+     * @return self
+     */
+    public function setServerOrigin(string $scheme, string $host, int $port): self
+    {
+        assert(empty($scheme) === false);
+        assert(empty($host) === false);
+        assert(0 < $port && $port <= 0xFFFF);
+
+        $this->serverOriginScheme = $scheme;
+        $this->serverOriginHost   = $host;
+
+        if (strcasecmp($scheme, 'http') === 0 && $port === 80) {
+            $port = null;
+        } elseif (strcasecmp($scheme, 'https') === 0 && $port === 443) {
+            $port = null;
+        }
+        $this->serverOriginPort = $port;
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isPreFlightCanBeCached(RequestInterface $request): bool
+    {
+        return $this->isPreFlightCanBeCached;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getPreFlightCacheMaxAge(RequestInterface $request): int
+    {
+        return $this->preFlightCacheMaxAge;
+    }
+
+    /**
+     * Set pre-flight cache max period in seconds.
+     *
+     * @param int $cacheMaxAge
+     *
+     * @return self
+     */
+    public function setPreFlightCacheMaxAge(int $cacheMaxAge): self
+    {
+        assert($cacheMaxAge >= 0);
+
+        $this->preFlightCacheMaxAge   = $cacheMaxAge;
+        $this->isPreFlightCanBeCached = $cacheMaxAge > 0;
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isForceAddAllowedMethodsToPreFlightResponse(): bool
+    {
+        return $this->isForceAddMethods;
+    }
+
+    /**
+     * If allowed headers should be added when request headers are 'simple' and
+     * non of them is 'Content-Type' (see #6.2.10 CORS).
+     *
+     * @see http://www.w3.org/TR/cors/#resource-preflight-requests
+     *
+     * @return self
+     */
+    public function enableAddAllowedMethodsToPreFlightResponse(): self
+    {
+        $this->isForceAddMethods = true;
+
+        return $this;
+    }
+
+    /**
+     * If allowed headers should be added when request headers are 'simple' and
+     * non of them is 'Content-Type' (see #6.2.10 CORS).
+     *
+     * @see http://www.w3.org/TR/cors/#resource-preflight-requests
+     *
+     * @return self
+     */
+    public function disableAddAllowedMethodsToPreFlightResponse(): self
+    {
+        $this->isForceAddMethods = false;
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isForceAddAllowedHeadersToPreFlightResponse(): bool
+    {
+        return $this->isForceAddHeaders;
+    }
+
+    /**
+     * If allowed headers should be added when request headers are 'simple' and
+     * non of them is 'Content-Type' (see #6.2.10 CORS).
+     *
+     * @see http://www.w3.org/TR/cors/#resource-preflight-requests
+     *
+     * @return self
+     */
+    public function enableAddAllowedHeadersToPreFlightResponse(): self
+    {
+        $this->isForceAddHeaders = true;
+
+        return $this;
+    }
+
+    /**
+     * If allowed headers should be added when request headers are 'simple' and
+     * non of them is 'Content-Type' (see #6.2.10 CORS).
+     *
+     * @see http://www.w3.org/TR/cors/#resource-preflight-requests
+     *
+     * @return self
+     */
+    public function disableAddAllowedHeadersToPreFlightResponse(): self
+    {
+        $this->isForceAddHeaders = false;
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isRequestCredentialsSupported(RequestInterface $request): bool
+    {
+        return $this->isUseCredentials;
+    }
+
+    /**
+     * If access with credentials is supported by the resource.
+     *
+     * @return self
+     */
+    public function setCredentialsSupported(): self
+    {
+        $this->isUseCredentials = true;
+
+        return $this;
+    }
+
+    /**
+     * If access with credentials is supported by the resource.
+     *
+     * @return self
+     */
+    public function setCredentialsNotSupported(): self
+    {
+        $this->isUseCredentials = false;
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isRequestOriginAllowed(string $requestOrigin): bool
+    {
+        return
+            $this->areAllOriginsAllowed === true ||
+            isset($this->allowedOrigins[strtolower($requestOrigin)]) === true;
+    }
+
+    /**
+     * Enable all origins allowed.
+     *
+     * @return self
+     */
+    public function enableAllOriginsAllowed(): self
+    {
+        $this->areAllOriginsAllowed = true;
+
+        return $this;
+    }
+
+    /**
+     * Disable all origins allowed.
+     *
+     * @return self
+     */
+    public function disableAllOriginsAllowed(): self
+    {
+        $this->areAllOriginsAllowed = false;
+
+        return $this;
+    }
+
+    /**
+     * Set allowed origins.
+     *
+     * @param array $origins
+     *
+     * @return self
+     */
+    public function setAllowedOrigins(array $origins): self
+    {
+        $this->allowedOrigins = [];
+
+        foreach ($origins as $origin) {
+            $this->allowedOrigins[strtolower($origin)] = true;
+        }
+
+        return $this->disableAllOriginsAllowed();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isRequestMethodSupported(string $method): bool
+    {
+        return $this->areAllMethodsAllowed === true || isset($this->allowedLcMethods[strtolower($method)]) === true;
+    }
+
+    /**
+     * Enable all methods allowed.
+     *
+     * @return self
+     */
+    public function enableAllMethodsAllowed(): self
+    {
+        $this->areAllMethodsAllowed = true;
+
+        return $this;
+    }
+
+    /**
+     * Disable all methods allowed.
+     *
+     * @return self
+     */
+    public function disableAllMethodsAllowed(): self
+    {
+        $this->areAllMethodsAllowed = false;
+
+        return $this;
+    }
+
+    /**
+     * Set allowed methods.
+     *
+     * Security Note: you have to remember CORS is not access control system and you should not expect all
+     * cross-origin requests will have pre-flights. For so-called 'simple' methods with so-called 'simple'
+     * headers request will be made without pre-flight. Thus you can not restrict such requests with CORS
+     * and should use other means.
+     * For example method 'GET' without any headers or with only 'simple' headers will not have pre-flight
+     * request so disabling it will not restrict access to resource(s).
+     * You can read more on 'simple' methods at http://www.w3.org/TR/cors/#simple-method
+     *
+     * @param array $methods
+     *
+     * @return self
+     */
+    public function setAllowedMethods(array $methods): self
+    {
+        $this->allowedMethodsList = implode(', ', $methods);
+
+        $this->allowedLcMethods = [];
+        foreach ($methods as $method) {
+            $this->allowedLcMethods[strtolower($method)] = true;
+        }
+
+        return $this->disableAllMethodsAllowed();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isRequestAllHeadersSupported(array $lcHeaders): bool
+    {
+        return $this->areAllHeadersAllowed === true ||
+            count(array_intersect($this->allowedLcHeaders, $lcHeaders)) === count($lcHeaders);
+    }
+
+    /**
+     * Enable all headers allowed.
+     *
+     * @return self
+     */
+    public function enableAllHeadersAllowed(): self
+    {
+        $this->areAllHeadersAllowed = true;
+
+        return $this;
+    }
+
+    /**
+     * Disable all headers allowed.
+     *
+     * @return self
+     */
+    public function disableAllHeadersAllowed(): self
+    {
+        $this->areAllHeadersAllowed = false;
+
+        return $this;
+    }
+
+    /**
+     * Set allowed headers.
+     *
+     * Security Note: you have to remember CORS is not access control system and you should not expect all
+     * cross-origin requests will have pre-flights. For so-called 'simple' methods with so-called 'simple'
+     * headers request will be made without pre-flight. Thus you can not restrict such requests with CORS
+     * and should use other means.
+     * For example method 'GET' without any headers or with only 'simple' headers will not have pre-flight
+     * request so disabling it will not restrict access to resource(s).
+     * You can read more on 'simple' headers at http://www.w3.org/TR/cors/#simple-header
+     *
+     * @param array $headers
+     *
+     * @return self
+     */
+    public function setAllowedHeaders(array $headers): self
+    {
+        $this->allowedHeadersList = implode(', ', $headers);
+
+        $this->allowedLcHeaders = [];
+        foreach ($headers as $header) {
+            $this->allowedLcHeaders[] = strtolower($header);
+        }
+
+        return $this->disableAllHeadersAllowed();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getRequestAllowedMethods(RequestInterface $request): string
+    {
+        return $this->allowedMethodsList;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getRequestAllowedHeaders(RequestInterface $request): string
+    {
+        return $this->allowedHeadersList;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getResponseExposedHeaders(RequestInterface $request): string
+    {
+        return $this->exposedHeadersList;
+    }
+
+    /**
+     * Set headers other than the simple ones that might be exposed to user agent.
+     *
+     * @param array $headers
+     *
+     * @return Settings
+     */
+    public function setExposedHeaders(array $headers): self
+    {
+        // Optional: from #7.1.1 'simple response headers' will be available in any case so it does not
+        // make sense to include those headers to exposed.
+        $filtered = [];
+        foreach ($headers as $header) {
+            if (in_array(strtolower($header), static::SIMPLE_LC_RESPONSE_HEADERS) === false) {
+                $filtered[] = $header;
+            }
+        }
+
+        $this->exposedHeadersList = implode(', ', $filtered);
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isCheckHost(): bool
+    {
+        return $this->isCheckHost;
+    }
+
+    /**
+     * If request 'Host' header should be checked against server's origin.
+     * Check of Host header is strongly encouraged by #6.3 CORS.
+     * Header 'Host' must present for all requests rfc2616 14.23
+     *
+     * @return self
+     */
+    public function enableCheckHost(): self
+    {
+        $this->isCheckHost = true;
+
+        return $this;
+    }
+
+    /**
+     * If request 'Host' header should be checked against server's origin.
+     * Check of Host header is strongly encouraged by #6.3 CORS.
+     * Header 'Host' must present for all requests rfc2616 14.23
+     *
+     * @return self
+     */
+    public function disableCheckHost(): self
+    {
+        $this->isCheckHost = false;
+
+        return $this;
     }
 }

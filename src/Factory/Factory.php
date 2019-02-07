@@ -1,7 +1,9 @@
-<?php namespace Neomerx\Cors\Factory;
+<?php declare(strict_types=1);
+
+namespace Neomerx\Cors\Factory;
 
 /**
- * Copyright 2015 info@neomerx.com (www.neomerx.com)
+ * Copyright 2015-2019 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +18,12 @@
  * limitations under the License.
  */
 
-use \Neomerx\Cors\Analyzer;
-use \Neomerx\Cors\AnalysisResult;
-use \Neomerx\Cors\Http\ParsedUrl;
-use \Neomerx\Cors\Contracts\Factory\FactoryInterface;
-use \Neomerx\Cors\Contracts\AnalysisStrategyInterface;
+use Neomerx\Cors\AnalysisResult;
+use Neomerx\Cors\Analyzer;
+use Neomerx\Cors\Contracts\AnalysisResultInterface;
+use Neomerx\Cors\Contracts\AnalysisStrategyInterface;
+use Neomerx\Cors\Contracts\AnalyzerInterface;
+use Neomerx\Cors\Contracts\Factory\FactoryInterface;
 
 /**
  * @package Neomerx\Cors
@@ -30,7 +33,7 @@ class Factory implements FactoryInterface
     /**
      * @inheritdoc
      */
-    public function createAnalyzer(AnalysisStrategyInterface $strategy)
+    public function createAnalyzer(AnalysisStrategyInterface $strategy): AnalyzerInterface
     {
         return new Analyzer($strategy, $this);
     }
@@ -38,16 +41,8 @@ class Factory implements FactoryInterface
     /**
      * @inheritdoc
      */
-    public function createAnalysisResult($requestType, array $responseHeaders = [])
+    public function createAnalysisResult(int $requestType, array $responseHeaders = []): AnalysisResultInterface
     {
         return new AnalysisResult($requestType, $responseHeaders);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function createParsedUrl($url)
-    {
-        return new ParsedUrl($url);
     }
 }

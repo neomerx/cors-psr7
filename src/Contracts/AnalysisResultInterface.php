@@ -1,7 +1,9 @@
-<?php namespace Neomerx\Cors\Contracts;
+<?php declare(strict_types=1);
+
+namespace Neomerx\Cors\Contracts;
 
 /**
- * Copyright 2015 info@neomerx.com (www.neomerx.com)
+ * Copyright 2015-2019 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,12 +49,12 @@ interface AnalysisResultInterface
      *
      * @return int
      */
-    public function getRequestType();
+    public function getRequestType(): int;
 
     /**
      * Get CORS headers to be added to response.
      *
      * @return array
      */
-    public function getResponseHeaders();
+    public function getResponseHeaders(): array;
 }

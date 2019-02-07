@@ -1,7 +1,9 @@
-<?php namespace Neomerx\Cors\Contracts;
+<?php declare(strict_types=1);
+
+namespace Neomerx\Cors\Contracts;
 
 /**
- * Copyright 2015 info@neomerx.com (www.neomerx.com)
+ * Copyright 2015-2019 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +18,8 @@
  * limitations under the License.
  */
 
-use \Psr\Log\LoggerAwareInterface;
-use \Psr\Http\Message\RequestInterface;
-use \Neomerx\Cors\Contracts\Http\ParsedUrlInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Log\LoggerAwareInterface;
 
 /**
  * @package Neomerx\Cors
@@ -26,13 +27,25 @@ use \Neomerx\Cors\Contracts\Http\ParsedUrlInterface;
 interface AnalysisStrategyInterface extends LoggerAwareInterface
 {
     /**
-     * Get server Origin URL. If array is returned it should be in parse_url() result format.
+     * Get server Origin URL scheme.
      *
-     * @see http://php.net/manual/function.parse-url.php
-     *
-     * @return string|array
+     * @return string
      */
-    public function getServerOrigin();
+    public function getServerOriginScheme(): string;
+
+    /**
+     * Get server Origin URL host.
+     *
+     * @return string
+     */
+    public function getServerOriginHost(): string;
+
+    /**
+     * Get server Origin URL port.
+     *
+     * @return int|null
+     */
+    public function getServerOriginPort(): ?int;
 
     /**
      * If pre-flight request result should be cached by user agent.
@@ -41,7 +54,7 @@ interface AnalysisStrategyInterface extends LoggerAwareInterface
      *
      * @return bool
      */
-    public function isPreFlightCanBeCached(RequestInterface $request);
+    public function isPreFlightCanBeCached(RequestInterface $request): bool;
 
     /**
      * Get pre-flight cache max period in seconds.
@@ -50,7 +63,7 @@ interface AnalysisStrategyInterface extends LoggerAwareInterface
      *
      * @return int
      */
-    public function getPreFlightCacheMaxAge(RequestInterface $request);
+    public function getPreFlightCacheMaxAge(RequestInterface $request): int;
 
     /**
      * If allowed methods should be added to pre-flight response when 'simple' method is requested (see #6.2.9 CORS).
@@ -59,7 +72,7 @@ interface AnalysisStrategyInterface extends LoggerAwareInterface
      *
      * @return bool
      */
-    public function isForceAddAllowedMethodsToPreFlightResponse();
+    public function isForceAddAllowedMethodsToPreFlightResponse(): bool;
 
     /**
      * If allowed headers should be added when request headers are 'simple' and
@@ -69,7 +82,7 @@ interface AnalysisStrategyInterface extends LoggerAwareInterface
      *
      * @return bool
      */
-    public function isForceAddAllowedHeadersToPreFlightResponse();
+    public function isForceAddAllowedHeadersToPreFlightResponse(): bool;
 
     /**
      * If access with credentials is supported by the resource.
@@ -78,16 +91,16 @@ interface AnalysisStrategyInterface extends LoggerAwareInterface
      *
      * @return bool
      */
-    public function isRequestCredentialsSupported(RequestInterface $request);
+    public function isRequestCredentialsSupported(RequestInterface $request): bool;
 
     /**
      * If request origin is allowed.
      *
-     * @param ParsedUrlInterface $requestOrigin
+     * @param string $requestOrigin
      *
      * @return bool
      */
-    public function isRequestOriginAllowed(ParsedUrlInterface $requestOrigin);
+    public function isRequestOriginAllowed(string $requestOrigin): bool;
 
     /**
      * If method is supported for actual request (case-sensitive compare).
@@ -96,16 +109,16 @@ interface AnalysisStrategyInterface extends LoggerAwareInterface
      *
      * @return bool
      */
-    public function isRequestMethodSupported($method);
+    public function isRequestMethodSupported(string $method): bool;
 
     /**
      * If requests headers are allowed (case-insensitive compare).
      *
-     * @param string[] $headers
+     * @param string[] $lcHeaders Lower-cased headers.
      *
      * @return bool
      */
-    public function isRequestAllHeadersSupported($headers);
+    public function isRequestAllHeadersSupported(array $lcHeaders): bool;
 
     /**
      * Get methods allowed for request. May return originally requested method ($requestMethod) or
@@ -115,11 +128,10 @@ interface AnalysisStrategyInterface extends LoggerAwareInterface
      * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Methods
      *
      * @param RequestInterface $request
-     * @param string           $requestMethod
      *
      * @return string
      */
-    public function getRequestAllowedMethods(RequestInterface $request, $requestMethod);
+    public function getRequestAllowedMethods(RequestInterface $request): string;
 
     /**
      * Get headers allowed for request (comma-separated list).
@@ -128,20 +140,19 @@ interface AnalysisStrategyInterface extends LoggerAwareInterface
      * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Headers
      *
      * @param RequestInterface $request
-     * @param array            $requestHeaders
      *
      * @return string
      */
-    public function getRequestAllowedHeaders(RequestInterface $request, array $requestHeaders);
+    public function getRequestAllowedHeaders(RequestInterface $request): string;
 
     /**
      * Get headers other than the simple ones that might be exposed to user agent.
      *
      * @param RequestInterface $request
      *
-     * @return string[]
+     * @return string
      */
-    public function getResponseExposedHeaders(RequestInterface $request);
+    public function getResponseExposedHeaders(RequestInterface $request): string;
 
     /**
      * If request 'Host' header should be checked against server's origin.
@@ -150,5 +161,5 @@ interface AnalysisStrategyInterface extends LoggerAwareInterface
      *
      * @return bool
      */
-    public function isCheckHost();
+    public function isCheckHost(): bool;
 }

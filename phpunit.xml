@@ -9,7 +9,7 @@
 		 convertWarningsToExceptions="true"
 		 processIsolation="false"
 		 stopOnFailure="false"
-		 syntaxCheck="true">
+         cacheResult="false">
 	<testsuites>
 		<testsuite name="All">
 			<directory>./tests/</directory>

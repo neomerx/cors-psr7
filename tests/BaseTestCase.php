@@ -1,7 +1,7 @@
 <?php namespace Neomerx\Tests\Cors;
 
 /**
- * Copyright 2015 info@neomerx.com (www.neomerx.com)
+ * Copyright 2015-2019 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,20 @@
  * limitations under the License.
  */
 
-use \Mockery;
-use \PHPUnit_Framework_TestCase;
+use Mockery;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @package Neomerx\Tests\Cors
  */
-abstract class BaseTestCase extends PHPUnit_Framework_TestCase
+abstract class BaseTestCase extends TestCase
 {
     /**
      * Tear down test.
      *
      * @return void
      */
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
         Mockery::close();

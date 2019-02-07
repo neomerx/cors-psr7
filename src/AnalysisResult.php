@@ -1,7 +1,9 @@
-<?php namespace Neomerx\Cors;
+<?php declare(strict_types=1);
+
+namespace Neomerx\Cors;
 
 /**
- * Copyright 2015 info@neomerx.com (www.neomerx.com)
+ * Copyright 2015-2019 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +18,7 @@
  * limitations under the License.
  */
 
-use \Neomerx\Cors\Contracts\AnalysisResultInterface;
+use Neomerx\Cors\Contracts\AnalysisResultInterface;
 
 /**
  * @package Neomerx\Cors
@@ -36,7 +38,7 @@ class AnalysisResult implements AnalysisResultInterface
     /**
      * @inheritdoc
      */
-    public function __construct($requestType, array $responseHeaders)
+    public function __construct(int $requestType, array $responseHeaders)
     {
         $this->requestType = $requestType;
         $this->headers     = $responseHeaders;
@@ -45,7 +47,7 @@ class AnalysisResult implements AnalysisResultInterface
     /**
      * @inheritdoc
      */
-    public function getRequestType()
+    public function getRequestType(): int
     {
         return $this->requestType;
     }
@@ -53,7 +55,7 @@ class AnalysisResult implements AnalysisResultInterface
     /**
      * @inheritdoc
      */
-    public function getResponseHeaders()
+    public function getResponseHeaders(): array
     {
         return $this->headers;
     }

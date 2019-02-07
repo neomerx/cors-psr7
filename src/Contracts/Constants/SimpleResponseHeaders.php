@@ -1,7 +1,9 @@
-<?php namespace Neomerx\Cors\Contracts\Constants;
+<?php declare(strict_types=1);
+
+namespace Neomerx\Cors\Contracts\Constants;
 
 /**
- * Copyright 2015 info@neomerx.com (www.neomerx.com)
+ * Copyright 2015-2019 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,42 +21,42 @@
 /**
  * @package Neomerx\Cors
  *
- * @see http://www.w3.org/TR/cors/#terminology
+ * @see     http://www.w3.org/TR/cors/#terminology
  */
 interface SimpleResponseHeaders
 {
     /**
      * Header name
      */
-    const CACHE_CONTROL = 'Cache-Control';
+    const LC_CACHE_CONTROL = 'cache-control';
 
     /**
      * Header name
      */
-    const CONTENT_LANGUAGE = 'Content-Language';
+    const LC_CONTENT_LANGUAGE = 'content-language';
 
     /**
      * Header name
      */
-    const ACCEPT_LANGUAGE = 'Accept-Language';
+    const LC_ACCEPT_LANGUAGE = 'accept-language';
 
     /**
      * Header name
      */
-    const CONTENT_TYPE = 'Content-Type';
+    const LC_CONTENT_TYPE = 'content-type';
 
     /**
      * Header name
      */
-    const EXPIRES = 'Expires';
+    const LC_EXPIRES = 'expires';
 
     /**
      * Header name
      */
-    const LAST_MODIFIED = 'Last-Modified';
+    const LC_LAST_MODIFIED = 'last-modified';
 
     /**
      * Header name
      */
-    const PRAGMA = 'Pragma';
+    const LC_PRAGMA = 'pragma';
 }

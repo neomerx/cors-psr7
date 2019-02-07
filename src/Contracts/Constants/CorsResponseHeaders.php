@@ -1,7 +1,9 @@
-<?php namespace Neomerx\Cors\Contracts\Constants;
+<?php declare(strict_types=1);
+
+namespace Neomerx\Cors\Contracts\Constants;
 
 /**
- * Copyright 2015 info@neomerx.com (www.neomerx.com)
+ * Copyright 2015-2019 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
