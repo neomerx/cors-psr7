@@ -444,18 +444,6 @@ class Settings implements AnalysisStrategyInterface
     }
 
     /**
-     * Disable all origins allowed.
-     *
-     * @return self
-     */
-    public function disableAllOriginsAllowed(): self
-    {
-        $this->areAllOriginsAllowed = false;
-
-        return $this;
-    }
-
-    /**
      * Set allowed origins.
      *
      * @param array $origins
@@ -470,7 +458,9 @@ class Settings implements AnalysisStrategyInterface
             $this->allowedOrigins[strtolower($origin)] = true;
         }
 
-        return $this->disableAllOriginsAllowed();
+        $this->areAllOriginsAllowed = false;
+
+        return $this;
     }
 
     /**
@@ -489,18 +479,6 @@ class Settings implements AnalysisStrategyInterface
     public function enableAllMethodsAllowed(): self
     {
         $this->areAllMethodsAllowed = true;
-
-        return $this;
-    }
-
-    /**
-     * Disable all methods allowed.
-     *
-     * @return self
-     */
-    public function disableAllMethodsAllowed(): self
-    {
-        $this->areAllMethodsAllowed = false;
 
         return $this;
     }
@@ -529,7 +507,9 @@ class Settings implements AnalysisStrategyInterface
             $this->allowedLcMethods[strtolower($method)] = true;
         }
 
-        return $this->disableAllMethodsAllowed();
+        $this->areAllMethodsAllowed = false;
+
+        return $this;
     }
 
     /**
@@ -549,18 +529,6 @@ class Settings implements AnalysisStrategyInterface
     public function enableAllHeadersAllowed(): self
     {
         $this->areAllHeadersAllowed = true;
-
-        return $this;
-    }
-
-    /**
-     * Disable all headers allowed.
-     *
-     * @return self
-     */
-    public function disableAllHeadersAllowed(): self
-    {
-        $this->areAllHeadersAllowed = false;
 
         return $this;
     }
@@ -589,7 +557,9 @@ class Settings implements AnalysisStrategyInterface
             $this->allowedLcHeaders[] = strtolower($header);
         }
 
-        return $this->disableAllHeadersAllowed();
+        $this->areAllHeadersAllowed = false;
+
+        return $this;
     }
 
     /**
