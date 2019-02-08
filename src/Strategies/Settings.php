@@ -39,7 +39,7 @@ class Settings implements AnalysisStrategyInterface
     /**
      * @var string[]
      */
-    const SIMPLE_LC_RESPONSE_HEADERS = [
+    protected const SIMPLE_LC_RESPONSE_HEADERS = [
         SimpleResponseHeaders::LC_ACCEPT_LANGUAGE,
         SimpleResponseHeaders::LC_CACHE_CONTROL,
         SimpleResponseHeaders::LC_CONTENT_LANGUAGE,
