@@ -3,7 +3,7 @@
 namespace Neomerx\Cors;
 
 /**
- * Copyright 2015-2019 info@neomerx.com
+ * Copyright 2015-2020 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,7 +134,8 @@ class Analyzer implements AnalyzerInterface
         // Request handlers have common part (#6.1.1 - #6.1.2 and #6.2.1 - #6.2.2)
 
         // #6.1.1 and #6.2.1
-        if (empty($requestOrigin = $this->getOriginHeader($request)) === true) {
+        $requestOrigin = $this->getOriginHeader($request);
+        if (empty($requestOrigin) === true) {
             $this->logInfo('Request is not CORS (request origin is empty).');
             return $this->createResult(AnalysisResultInterface::TYPE_REQUEST_OUT_OF_CORS_SCOPE);
         }
@@ -438,8 +439,7 @@ class Analyzer implements AnalyzerInterface
      */
     protected static function getFactory(): FactoryInterface
     {
-        /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
-        return new \Neomerx\Cors\Factory\Factory();
+        return new Factory\Factory();
     }
 
     /**
