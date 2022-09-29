@@ -1,9 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Neomerx\Cors\Contracts\Constants;
 
 /**
- * Copyright 2015-2020 info@neomerx.com
+ * Copyright 2015-2020 info@neomerx.com.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,44 +19,40 @@ namespace Neomerx\Cors\Contracts\Constants;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/**
- * @package Neomerx\Cors
- */
 interface CorsRequestHeaders
 {
     /**
-     * CORS Header
+     * CORS Header.
      *
      * @see http://www.w3.org/TR/cors/#origin-request-header
      */
-    const ORIGIN = 'Origin';
+    public const ORIGIN = 'Origin';
 
     /**
-     * CORS Header
+     * CORS Header.
      *
      * @see http://www.w3.org/TR/cors/#access-control-request-method-request-header
      */
-    const METHOD = 'Access-Control-Request-Method';
+    public const METHOD = 'Access-Control-Request-Method';
 
     /**
-     * CORS Header
+     * CORS Header.
      *
      * @see http://www.w3.org/TR/cors/#access-control-request-headers-request-header
      */
-    const HEADERS = 'Access-Control-Request-Headers';
+    public const HEADERS = 'Access-Control-Request-Headers';
 
     /**
-     * Header name separator
+     * Header name separator.
      *
      * @see http://www.w3.org/TR/cors/#cross-origin-request-with-preflight-0
      */
-    const HEADERS_SEPARATOR = ',';
+    public const HEADERS_SEPARATOR = ',';
 
     /**
-     * CORS Header
+     * CORS Header.
      *
      * @see http://www.w3.org/TR/cors/#resource-security
      */
-    const HOST = 'Host';
+    public const HOST = 'Host';
 }

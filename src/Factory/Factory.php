@@ -1,8 +1,10 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Neomerx\Cors\Factory;
 
-/**
+/*
  * Copyright 2015-2020 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,13 +27,10 @@ use Neomerx\Cors\Contracts\AnalysisStrategyInterface;
 use Neomerx\Cors\Contracts\AnalyzerInterface;
 use Neomerx\Cors\Contracts\Factory\FactoryInterface;
 
-/**
- * @package Neomerx\Cors
- */
 class Factory implements FactoryInterface
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function createAnalyzer(AnalysisStrategyInterface $strategy): AnalyzerInterface
     {
@@ -39,7 +38,7 @@ class Factory implements FactoryInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function createAnalysisResult(int $requestType, array $responseHeaders = []): AnalysisResultInterface
     {

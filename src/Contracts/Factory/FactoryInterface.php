@@ -1,8 +1,10 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Neomerx\Cors\Contracts\Factory;
 
-/**
+/*
  * Copyright 2015-2020 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,27 +24,15 @@ use Neomerx\Cors\Contracts\AnalysisResultInterface;
 use Neomerx\Cors\Contracts\AnalysisStrategyInterface;
 use Neomerx\Cors\Contracts\AnalyzerInterface;
 
-/**
- * @package Neomerx\Cors
- */
 interface FactoryInterface
 {
     /**
      * Create CORS Analyzer.
-     *
-     * @param AnalysisStrategyInterface $strategy
-     *
-     * @return AnalyzerInterface
      */
     public function createAnalyzer(AnalysisStrategyInterface $strategy): AnalyzerInterface;
 
     /**
      * Create request analysis result.
-     *
-     * @param int   $requestType
-     * @param array $responseHeaders
-     *
-     * @return AnalysisResultInterface
      */
     public function createAnalysisResult(int $requestType, array $responseHeaders = []): AnalysisResultInterface;
 }

@@ -1,8 +1,10 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Neomerx\Cors\Contracts;
 
-/**
+/*
  * Copyright 2015-2020 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,17 +23,10 @@ namespace Neomerx\Cors\Contracts;
 use Psr\Http\Message\RequestInterface;
 use Psr\Log\LoggerAwareInterface;
 
-/**
- * @package Neomerx\Cors
- */
 interface AnalyzerInterface extends LoggerAwareInterface
 {
     /**
      * Set request for analysis.
-     *
-     * @param RequestInterface $request
-     *
-     * @return AnalysisResultInterface
      */
     public function analyze(RequestInterface $request): AnalysisResultInterface;
 }

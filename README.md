@@ -1,15 +1,12 @@
-[![Build Status](https://travis-ci.org/neomerx/cors-psr7.svg?branch=master)](https://travis-ci.org/neomerx/cors-psr7)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/neomerx/cors-psr7/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/neomerx/cors-psr7/?branch=master)
-[![Code Coverage](https://scrutinizer-ci.com/g/neomerx/cors-psr7/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/neomerx/cors-psr7/?branch=master)
 [![License](https://img.shields.io/packagist/l/neomerx/cors-psr7.svg)](https://packagist.org/packages/neomerx/cors-psr7)
 
 ## Description
 
-This package has framework agnostic [Cross-Origin Resource Sharing](http://www.w3.org/TR/cors/) (CORS) implementation. It is complaint with [PSR-7](http://www.php-fig.org/psr/psr-7/) HTTP message interfaces.
+This package has framework-agnostic [Cross-Origin Resource Sharing](http://www.w3.org/TR/cors/) (CORS) implementation. It is compliant with [PSR-7](http://www.php-fig.org/psr/psr-7/) HTTP message interfaces.
 
 Why this package?
 
-- Implementation is based on latest [CORS specification](http://www.w3.org/TR/cors/).
+- Implementation is based on [CORS specification](http://www.w3.org/TR/cors/).
 - Works with [PSR-7 HTTP message interfaces](http://www.php-fig.org/psr/psr-7/).
 - Supports debug mode with [PSR-3 Logger Interface](http://www.php-fig.org/psr/psr-3/).
 - Flexible, modular and extensible solution.

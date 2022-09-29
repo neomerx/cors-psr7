@@ -1,9 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Neomerx\Cors\Contracts\Constants;
 
 /**
- * Copyright 2015-2020 info@neomerx.com
+ * Copyright 2015-2020 info@neomerx.com.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,24 +23,22 @@ namespace Neomerx\Cors\Contracts\Constants;
 /**
  * Note: Header names must be lower-cased (it allows optimize their comparison).
  *
- * @package Neomerx\Cors
- *
  * @see     http://www.w3.org/TR/cors/#terminology
  */
 interface SimpleRequestHeaders
 {
     /**
-     * Header name
+     * Header name.
      */
-    const LC_ACCEPT = 'accept';
+    public const LC_ACCEPT = 'accept';
 
     /**
-     * Header name
+     * Header name.
      */
-    const LC_ACCEPT_LANGUAGE = 'accept-language';
+    public const LC_ACCEPT_LANGUAGE = 'accept-language';
 
     /**
-     * Header name
+     * Header name.
      */
-    const LC_CONTENT_LANGUAGE = 'content-language';
+    public const LC_CONTENT_LANGUAGE = 'content-language';
 }
