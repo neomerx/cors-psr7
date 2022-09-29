@@ -1,6 +1,10 @@
-<?php namespace Neomerx\Tests\Cors;
+<?php
 
-/**
+declare(strict_types=1);
+
+namespace Neomerx\Tests\Cors;
+
+/*
  * Copyright 2015-2020 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,9 +23,6 @@
 use Neomerx\Cors\Contracts\AnalysisResultInterface;
 use Neomerx\Cors\Factory\Factory;
 
-/**
- * @package Neomerx\Tests\Cors
- */
 class AnalysisResultTest extends BaseTestCase
 {
     /**

@@ -1,6 +1,10 @@
-<?php namespace Neomerx\Tests\Cors;
+<?php
 
-/**
+declare(strict_types=1);
+
+namespace Neomerx\Tests\Cors;
+
+/*
  * Copyright 2015-2020 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,19 +23,17 @@
 use Mockery;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @package Neomerx\Tests\Cors
- */
 abstract class BaseTestCase extends TestCase
 {
     /**
      * Tear down test.
-     *
-     * @return void
      */
     protected function tearDown(): void
     {
         parent::tearDown();
+
+        $this->addToAssertionCount(Mockery::getContainer()->mockery_getExpectationCount());
+
         Mockery::close();
     }
 }

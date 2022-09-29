@@ -1,8 +1,10 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Neomerx\Cors\Log;
 
-/**
+/*
  * Copyright 2015-2020 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,51 +22,27 @@ namespace Neomerx\Cors\Log;
 
 use Psr\Log\LoggerAwareTrait as PsrLoggerAwareTrait;
 
-/**
- * @package Neomerx\Cors
- */
 trait LoggerAwareTrait
 {
     use PsrLoggerAwareTrait;
 
-    /**
-     * @param string $message
-     * @param array  $context
-     *
-     * @return void
-     */
-    protected function logDebug($message, array $context = [])
+    protected function logDebug(string $message, array $context = []): void
     {
-        $this->hasLogger() === true ?: $this->logger->debug($message, $context);
+        true === $this->hasLogger() ?: $this->logger->debug($message, $context);
     }
 
-    /**
-     * @param string $message
-     * @param array  $context
-     *
-     * @return void
-     */
-    protected function logInfo($message, array $context = [])
+    protected function logInfo(string $message, array $context = []): void
     {
-        $this->hasLogger() === true ?: $this->logger->info($message, $context);
+        true === $this->hasLogger() ?: $this->logger->info($message, $context);
     }
 
-    /**
-     * @param string $message
-     * @param array  $context
-     *
-     * @return void
-     */
-    protected function logWarning($message, array $context = [])
+    protected function logWarning(string $message, array $context = []): void
     {
-        $this->hasLogger() === true ?: $this->logger->warning($message, $context);
+        true === $this->hasLogger() ?: $this->logger->warning($message, $context);
     }
 
-    /**
-     * @return bool
-     */
-    protected function hasLogger()
+    protected function hasLogger(): bool
     {
-        return $this->logger === null;
+        return null === $this->logger;
     }
 }

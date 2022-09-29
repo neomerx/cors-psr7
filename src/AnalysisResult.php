@@ -1,8 +1,10 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Neomerx\Cors;
 
-/**
+/*
  * Copyright 2015-2020 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,23 +22,14 @@ namespace Neomerx\Cors;
 
 use Neomerx\Cors\Contracts\AnalysisResultInterface;
 
-/**
- * @package Neomerx\Cors
- */
 class AnalysisResult implements AnalysisResultInterface
 {
-    /**
-     * @var int
-     */
-    private $requestType;
+    private int $requestType;
+
+    private array $headers;
 
     /**
-     * @var array
-     */
-    private $headers;
-
-    /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function __construct(int $requestType, array $responseHeaders)
     {
@@ -45,7 +38,7 @@ class AnalysisResult implements AnalysisResultInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getRequestType(): int
     {
@@ -53,7 +46,7 @@ class AnalysisResult implements AnalysisResultInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getResponseHeaders(): array
     {

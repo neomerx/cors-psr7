@@ -1,6 +1,10 @@
-<?php namespace Neomerx\Tests\Cors;
+<?php
 
-/**
+declare(strict_types=1);
+
+namespace Neomerx\Tests\Cors;
+
+/*
  * Copyright 2015-2020 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,40 +33,30 @@ use Psr\Log\LoggerInterface;
 
 /**
  * NOTE: This test suite uses AppTestSettings and its static properties.
- *
- * @package Neomerx\Tests\Cors
- *
- * @SuppressWarnings(PHPMD.TooManyMethods)
  */
 class AnalyzerTest extends BaseTestCase
 {
-    /**
-     * @var RequestInterface
-     */
-    private $request;
+    private RequestInterface $request;
+
+    private AnalyzerInterface $analyzer;
+
+    private Settings $settings;
 
     /**
-     * @var AnalyzerInterface
-     */
-    private $analyzer;
-
-    /**
-     * @var Settings
-     */
-    private $settings;
-
-    /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function setUp(): void
     {
         parent::setUp();
 
         $settings = new Settings();
+
+        $settings->enableAllOriginsAllowed()->enableAllMethodsAllowed()->enableAllHeadersAllowed();
+
         $settings->init(
             'http',
             'example.com',
-            123
+            123,
         )->setAllowedOrigins([
             'http://good.example.com:321',
         ])->setAllowedMethods([
@@ -114,7 +108,7 @@ class AnalyzerTest extends BaseTestCase
         $this->theseHeadersWillBeGotOnce(
             [
                 CorsRequestHeaders::HOST => ['evil.com'],
-            ]
+            ],
         );
 
         $result = $this->analyzer->analyze($this->request);
@@ -132,13 +126,13 @@ class AnalyzerTest extends BaseTestCase
             [
                 CorsRequestHeaders::HOST   => [$this->getServerHost()],
                 CorsRequestHeaders::ORIGIN => [],
-            ]
+            ],
         );
 
         $this->existenceOfTheseHeadersWillBeCheckedOnce(
             [
                 CorsRequestHeaders::ORIGIN => true,
-            ]
+            ],
         );
 
         $result = $this->analyzer->analyze($this->request);
@@ -156,13 +150,13 @@ class AnalyzerTest extends BaseTestCase
             [
                 CorsRequestHeaders::HOST   => [$this->getServerHost()],
                 CorsRequestHeaders::ORIGIN => [$this->getServerHost('http')],
-            ]
+            ],
         );
 
         $this->existenceOfTheseHeadersWillBeCheckedOnce(
             [
                 CorsRequestHeaders::ORIGIN => true,
-            ]
+            ],
         );
 
         $result = $this->analyzer->analyze($this->request);
@@ -220,13 +214,13 @@ class AnalyzerTest extends BaseTestCase
             [
                 CorsRequestHeaders::HOST   => [$this->getServerHost()],
                 CorsRequestHeaders::ORIGIN => ['http://some-devil-host.com'],
-            ]
+            ],
         );
 
         $this->existenceOfTheseHeadersWillBeCheckedOnce(
             [
                 CorsRequestHeaders::ORIGIN => true,
-            ]
+            ],
         );
 
         $result = $this->analyzer->analyze($this->request);
@@ -244,13 +238,13 @@ class AnalyzerTest extends BaseTestCase
             [
                 CorsRequestHeaders::HOST   => [$this->getServerHost()],
                 CorsRequestHeaders::ORIGIN => ['file://'],
-            ]
+            ],
         );
 
         $this->existenceOfTheseHeadersWillBeCheckedOnce(
             [
                 CorsRequestHeaders::ORIGIN => true,
-            ]
+            ],
         );
 
         $result = $this->analyzer->analyze($this->request);
@@ -269,13 +263,13 @@ class AnalyzerTest extends BaseTestCase
             [
                 CorsRequestHeaders::HOST   => [$this->getServerHost()],
                 CorsRequestHeaders::ORIGIN => [$allowedOrigin],
-            ]
+            ],
         );
 
         $this->existenceOfTheseHeadersWillBeCheckedOnce(
             [
                 CorsRequestHeaders::ORIGIN => true,
-            ]
+            ],
         );
 
         $this->thisMethodWillBeGotOnce('GET');
@@ -290,7 +284,7 @@ class AnalyzerTest extends BaseTestCase
                 CorsResponseHeaders::ALLOW_CREDENTIALS => CorsResponseHeaders::VALUE_ALLOW_CREDENTIALS_TRUE,
                 CorsResponseHeaders::VARY              => CorsRequestHeaders::ORIGIN,
             ],
-            $result->getResponseHeaders()
+            $result->getResponseHeaders(),
         );
     }
 
@@ -306,26 +300,25 @@ class AnalyzerTest extends BaseTestCase
         $settings->init(
             'http',
             'example.com',
-            80
+            80,
         )->setAllowedOrigins([
             $allowedOrigin,
         ])->setAllowedMethods([
-                'GET',
+            'GET',
         ])->enableCheckHost();
         $this->assertNotNull($analyzer = Analyzer::instance($settings));
 
-        //
         $this->theseHeadersWillBeGotOnce(
             [
                 CorsRequestHeaders::HOST   => [$this->getServerHost('', null)],
                 CorsRequestHeaders::ORIGIN => [$allowedOrigin],
-            ]
+            ],
         );
 
         $this->existenceOfTheseHeadersWillBeCheckedOnce(
             [
                 CorsRequestHeaders::ORIGIN => true,
-            ]
+            ],
         );
 
         $this->thisMethodWillBeGotOnce('GET');
@@ -338,7 +331,7 @@ class AnalyzerTest extends BaseTestCase
                 CorsResponseHeaders::ALLOW_ORIGIN => $allowedOrigin,
                 CorsResponseHeaders::VARY         => CorsRequestHeaders::ORIGIN,
             ],
-            $result->getResponseHeaders()
+            $result->getResponseHeaders(),
         );
     }
 
@@ -353,13 +346,13 @@ class AnalyzerTest extends BaseTestCase
                 CorsRequestHeaders::HOST   => [$this->getServerHost()],
                 CorsRequestHeaders::ORIGIN => [$allowedOrigin],
                 CorsRequestHeaders::METHOD => [],
-            ]
+            ],
         );
 
         $this->existenceOfTheseHeadersWillBeCheckedOnce(
             [
                 CorsRequestHeaders::ORIGIN => true,
-            ]
+            ],
         );
 
         $this->thisMethodWillBeGotOnce('OPTIONS');
@@ -383,13 +376,13 @@ class AnalyzerTest extends BaseTestCase
                 CorsRequestHeaders::ORIGIN  => [$allowedOrigin],
                 CorsRequestHeaders::METHOD  => [$notAllowedMethod],
                 CorsRequestHeaders::HEADERS => [],
-            ]
+            ],
         );
 
         $this->existenceOfTheseHeadersWillBeCheckedOnce(
             [
                 CorsRequestHeaders::ORIGIN => true,
-            ]
+            ],
         );
 
         $this->thisMethodWillBeGotOnce('OPTIONS');
@@ -414,13 +407,13 @@ class AnalyzerTest extends BaseTestCase
                 CorsRequestHeaders::ORIGIN  => [$allowedOrigin],
                 CorsRequestHeaders::METHOD  => [$allowedMethod],
                 CorsRequestHeaders::HEADERS => [$notAllowedHeader],
-            ]
+            ],
         );
 
         $this->existenceOfTheseHeadersWillBeCheckedOnce(
             [
                 CorsRequestHeaders::ORIGIN => true,
-            ]
+            ],
         );
 
         $this->thisMethodWillBeGotOnce('OPTIONS');
@@ -445,13 +438,13 @@ class AnalyzerTest extends BaseTestCase
                 CorsRequestHeaders::ORIGIN  => [$allowedOrigin],
                 CorsRequestHeaders::METHOD  => [$allowedMethod],
                 CorsRequestHeaders::HEADERS => [$allowedHeadersList],
-            ]
+            ],
         );
 
         $this->existenceOfTheseHeadersWillBeCheckedOnce(
             [
                 CorsRequestHeaders::ORIGIN => true,
-            ]
+            ],
         );
 
         $this->thisMethodWillBeGotOnce('OPTIONS');
@@ -472,7 +465,7 @@ class AnalyzerTest extends BaseTestCase
                 CorsResponseHeaders::ALLOW_METHODS     => 'GET, POST, DELETE',
                 CorsResponseHeaders::ALLOW_HEADERS     => 'Content-Type, X-Enabled-Custom-Header',
             ],
-            $result->getResponseHeaders()
+            $result->getResponseHeaders(),
         );
     }
 
@@ -490,13 +483,13 @@ class AnalyzerTest extends BaseTestCase
                 CorsRequestHeaders::ORIGIN  => [$allowedOrigin],
                 CorsRequestHeaders::METHOD  => [$allowedMethod],
                 CorsRequestHeaders::HEADERS => [$allowedHeadersList],
-            ]
+            ],
         );
 
         $this->existenceOfTheseHeadersWillBeCheckedOnce(
             [
                 CorsRequestHeaders::ORIGIN => true,
-            ]
+            ],
         );
 
         $this->thisMethodWillBeGotOnce('OPTIONS');
@@ -517,7 +510,7 @@ class AnalyzerTest extends BaseTestCase
                 CorsResponseHeaders::ALLOW_METHODS     => 'GET, POST, DELETE',
                 CorsResponseHeaders::ALLOW_HEADERS     => 'Content-Type, X-Enabled-Custom-Header',
             ],
-            $result->getResponseHeaders()
+            $result->getResponseHeaders(),
         );
     }
 
@@ -531,116 +524,77 @@ class AnalyzerTest extends BaseTestCase
         $this->analyzer->setLogger($logger);
     }
 
-    /**
-     * @param array $headers
-     *
-     * @return void
-     */
-    private function theseHeadersWillBeGotOnce(array $headers)
+    private function theseHeadersWillBeGotOnce(array $headers): void
     {
         /** @var MockInterface $request */
         $request = $this->request;
 
         foreach ($headers as $headerName => $headerValue) {
-            /** @noinspection PhpMethodParametersCountMismatchInspection */
+            // @noinspection PhpMethodParametersCountMismatchInspection
             $request->shouldReceive('getHeader')->once()->withArgs([$headerName])->andReturn($headerValue);
         }
     }
 
     /**
      * @param string[] $headers
-     *
-     * @return void
      */
-    private function existenceOfTheseHeadersWillBeCheckedOnce(array $headers)
+    private function existenceOfTheseHeadersWillBeCheckedOnce(array $headers): void
     {
         /** @var MockInterface $request */
         $request = $this->request;
 
         foreach ($headers as $headerName => $hasHeader) {
-            /** @noinspection PhpMethodParametersCountMismatchInspection */
+            // @noinspection PhpMethodParametersCountMismatchInspection
             $request->shouldReceive('hasHeader')->once()->withArgs([$headerName])->andReturn($hasHeader);
         }
     }
 
-    /**
-     * @param string $method
-     *
-     * @return void
-     */
-    private function thisMethodWillBeGotOnce($method)
+    private function thisMethodWillBeGotOnce(string $method): void
     {
         /** @var MockInterface $request */
         $request = $this->request;
-        /** @noinspection PhpMethodParametersCountMismatchInspection */
+        // @noinspection PhpMethodParametersCountMismatchInspection
         $request->shouldReceive('getMethod')->once()->withNoArgs()->andReturn($method);
     }
 
-    /**
-     * @param string   $schema
-     * @param null|int $port
-     *
-     * @return string
-     */
-    private function getServerHost($schema = '', $port = 123)
+    private function getServerHost(string $schema = '', ?int $port = 123): string
     {
-        $value = (empty($schema) === true ? 'example.com' : "$schema://example.com") . ($port === null ? '' : ":$port");
-
-        return $value;
+        return (true === empty($schema) ?
+                'example.com' : "{$schema}://example.com") . (null === $port ? '' : ":{$port}");
     }
 
-    /**
-     * @return string
-     */
-    private function getFirstAllowedOriginFromSettings()
+    private function getFirstAllowedOriginFromSettings(): string
     {
         return 'http://good.example.com:321';
     }
 
-    /**
-     * @return string
-     */
-    private function getFirstNotAllowedMethod()
+    private function getFirstNotAllowedMethod(): string
     {
         return 'PATCH';
     }
 
-    /**
-     * @return string
-     */
-    private function getFirstAllowedMethod()
+    private function getFirstAllowedMethod(): string
     {
         return 'GET';
     }
 
-    /**
-     * @return string
-     */
-    private function getFirstAllowedNotSimpleMethod()
+    private function getFirstAllowedNotSimpleMethod(): string
     {
         return 'DELETE';
     }
 
-    /**
-     * @return string
-     */
-    private function getFirstNotAllowedHeader()
+    private function getFirstNotAllowedHeader(): string
     {
         return 'some-disabled-header';
     }
 
-    /**
-     * @return string
-     */
-    private function getAllowedHeadersList()
+    private function getAllowedHeadersList(): string
     {
         $allowedHeaders = [
             'content-type',
             'x-enabled-custom-header',
         ];
 
-        $result = implode(', ', $allowedHeaders);
-
-        return $result;
+        return implode(', ', $allowedHeaders);
     }
 }

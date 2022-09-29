@@ -1,9 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Neomerx\Cors\Contracts;
 
 /**
- * Copyright 2015-2020 info@neomerx.com
+ * Copyright 2015-2020 info@neomerx.com.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,44 +19,36 @@ namespace Neomerx\Cors\Contracts;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/**
- * @package Neomerx\Cors
- */
 interface AnalysisResultInterface
 {
     /** Request is out of CORS specification */
-    const TYPE_REQUEST_OUT_OF_CORS_SCOPE = 0;
+    public const TYPE_REQUEST_OUT_OF_CORS_SCOPE = 0;
 
     /** Request is pre-flight */
-    const TYPE_PRE_FLIGHT_REQUEST = 1;
+    public const TYPE_PRE_FLIGHT_REQUEST = 1;
 
     /** Actual request */
-    const TYPE_ACTUAL_REQUEST = 2;
+    public const TYPE_ACTUAL_REQUEST = 2;
 
     /** Request origin is not allowed */
-    const ERR_ORIGIN_NOT_ALLOWED = 3;
+    public const ERR_ORIGIN_NOT_ALLOWED = 3;
 
     /** Request method is not supported */
-    const ERR_METHOD_NOT_SUPPORTED = 4;
+    public const ERR_METHOD_NOT_SUPPORTED = 4;
 
     /** Request headers are not supported */
-    const ERR_HEADERS_NOT_SUPPORTED = 5;
+    public const ERR_HEADERS_NOT_SUPPORTED = 5;
 
     /** No Host header in request */
-    const ERR_NO_HOST_HEADER = 6;
+    public const ERR_NO_HOST_HEADER = 6;
 
     /**
      * Get request type.
-     *
-     * @return int
      */
     public function getRequestType(): int;
 
     /**
      * Get CORS headers to be added to response.
-     *
-     * @return array
      */
     public function getResponseHeaders(): array;
 }

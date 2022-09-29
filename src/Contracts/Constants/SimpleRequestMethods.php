@@ -1,9 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Neomerx\Cors\Contracts\Constants;
 
 /**
- * Copyright 2015-2020 info@neomerx.com
+ * Copyright 2015-2020 info@neomerx.com.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,24 +21,22 @@ namespace Neomerx\Cors\Contracts\Constants;
  */
 
 /**
- * @package Neomerx\Cors
- *
  * @see     http://www.w3.org/TR/cors/#terminology
  */
 interface SimpleRequestMethods
 {
     /**
-     * Method name
+     * Method name.
      */
-    const GET = 'GET';
+    public const GET = 'GET';
 
     /**
-     * Method name
+     * Method name.
      */
-    const HEAD = 'HEAD';
+    public const HEAD = 'HEAD';
 
     /**
-     * Method name
+     * Method name.
      */
-    const POST = 'POST';
+    public const POST = 'POST';
 }

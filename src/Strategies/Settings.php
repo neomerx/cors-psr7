@@ -1,8 +1,10 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Neomerx\Cors\Strategies;
 
-/**
+/*
  * Copyright 2015-2020 info@neomerx.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,13 +27,6 @@ use Psr\Http\Message\RequestInterface;
 
 /**
  * Implements strategy as a simple set of setting identical for all resources and requests.
- *
- * @package Neomerx\Cors
- *
- * @SuppressWarnings(PHPMD.LongVariable)
- * @SuppressWarnings(PHPMD.TooManyFields)
- * @SuppressWarnings(PHPMD.TooManyPublicMethods)
- * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class Settings implements AnalysisStrategyInterface
 {
@@ -50,104 +45,44 @@ class Settings implements AnalysisStrategyInterface
         SimpleResponseHeaders::LC_PRAGMA,
     ];
 
-    /**
-     * @var string
-     */
-    private $serverOriginScheme;
+    private string $serverOriginScheme;
 
-    /**
-     * @var string
-     */
-    private $serverOriginHost;
+    private string $serverOriginHost;
 
-    /**
-     * @var null|int
-     */
-    private $serverOriginPort;
+    private ?int $serverOriginPort;
 
-    /**
-     * @var bool
-     */
-    private $isPreFlightCanBeCached;
+    private bool $isPreFlightCanBeCached;
 
-    /**
-     * @var int
-     */
-    private $preFlightCacheMaxAge;
+    private int $preFlightCacheMaxAge;
 
-    /**
-     * @var bool
-     */
-    private $isForceAddMethods;
+    private bool $isForceAddMethods;
 
-    /**
-     * @var bool
-     */
-    private $isForceAddHeaders;
+    private bool $isForceAddHeaders;
 
-    /**
-     * @var bool
-     */
-    private $isUseCredentials;
+    private bool $isUseCredentials;
 
-    /**
-     * @var bool
-     */
-    private $areAllOriginsAllowed;
+    private bool $areAllOriginsAllowed;
 
-    /**
-     * @var array
-     */
-    private $allowedOrigins;
+    private array $allowedOrigins;
 
-    /**
-     * @var bool
-     */
-    private $areAllMethodsAllowed;
+    private bool $areAllMethodsAllowed;
 
-    /**
-     * @var array
-     */
-    private $allowedLcMethods;
+    private array $allowedLcMethods;
 
-    /**
-     * @var string
-     */
-    private $allowedMethodsList;
+    private string $allowedMethodsList;
 
-    /**
-     * @var bool
-     */
-    private $areAllHeadersAllowed;
+    private bool $areAllHeadersAllowed;
 
-    /**
-     * @var array
-     */
-    private $allowedLcHeaders;
+    private array $allowedLcHeaders;
 
-    /**
-     * @var string
-     */
-    private $allowedHeadersList;
+    private string $allowedHeadersList;
 
-    /**
-     * @var string
-     */
-    private $exposedHeadersList;
+    private string $exposedHeadersList;
 
-    /**
-     * @var bool
-     */
-    private $isCheckHost;
+    private bool $isCheckHost;
 
     /**
      * Sort of default constructor, though made separate to be used optionally when no cached data available.
-     *
-     * @param string $scheme
-     * @param string $host
-     * @param int    $port
-     *
-     * @return self
      */
     public function init(string $scheme, string $host, int $port): self
     {
@@ -155,12 +90,9 @@ class Settings implements AnalysisStrategyInterface
             ->setServerOrigin($scheme, $host, $port)
             ->setPreFlightCacheMaxAge(0)
             ->setCredentialsNotSupported()
-            ->enableAllOriginsAllowed()
-            ->setAllowedOrigins([])
-            ->enableAllMethodsAllowed()
-            ->setAllowedMethods([])
-            ->enableAllHeadersAllowed()
-            ->setAllowedHeaders([])
+            ->setAllowedOrigins([]) // see enableAllOriginsAllowed() as an alternative
+            ->setAllowedMethods([]) // see enableAllMethodsAllowed() as an alternative
+            ->setAllowedHeaders([]) // see enableAllHeadersAllowed() as an alternative
             ->setExposedHeaders([])
             ->disableAddAllowedMethodsToPreFlightResponse()
             ->disableAddAllowedHeadersToPreFlightResponse()
@@ -169,8 +101,6 @@ class Settings implements AnalysisStrategyInterface
 
     /**
      * Get internal data state. Can be used for data caching.
-     *
-     * @return array
      */
     public function getData(): array
     {
@@ -198,10 +128,6 @@ class Settings implements AnalysisStrategyInterface
 
     /**
      * Set internal data state. Can be used for setting cached data.
-     *
-     * @param array $data
-     *
-     * @return self
      */
     public function setData(array $data): self
     {
@@ -230,7 +156,7 @@ class Settings implements AnalysisStrategyInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getServerOriginScheme(): string
     {
@@ -238,7 +164,7 @@ class Settings implements AnalysisStrategyInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getServerOriginHost(): string
     {
@@ -246,7 +172,7 @@ class Settings implements AnalysisStrategyInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getServerOriginPort(): ?int
     {
@@ -255,25 +181,19 @@ class Settings implements AnalysisStrategyInterface
 
     /**
      * Set server Origin URL.
-     *
-     * @param string $scheme
-     * @param string $host
-     * @param int    $port
-     *
-     * @return self
      */
     public function setServerOrigin(string $scheme, string $host, int $port): self
     {
-        \assert(empty($scheme) === false);
-        \assert(empty($host) === false);
+        \assert(false === empty($scheme));
+        \assert(false === empty($host));
         \assert(0 < $port && $port <= 0xFFFF);
 
         $this->serverOriginScheme = $scheme;
         $this->serverOriginHost   = $host;
 
-        if (\strcasecmp($scheme, 'http') === 0 && $port === 80) {
+        if (0 === \strcasecmp($scheme, 'http') && 80 === $port) {
             $port = null;
-        } elseif (\strcasecmp($scheme, 'https') === 0 && $port === 443) {
+        } elseif (0 === \strcasecmp($scheme, 'https') && 443 === $port) {
             $port = null;
         }
         $this->serverOriginPort = $port;
@@ -282,7 +202,7 @@ class Settings implements AnalysisStrategyInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isPreFlightCanBeCached(RequestInterface $request): bool
     {
@@ -290,7 +210,7 @@ class Settings implements AnalysisStrategyInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getPreFlightCacheMaxAge(RequestInterface $request): int
     {
@@ -299,10 +219,6 @@ class Settings implements AnalysisStrategyInterface
 
     /**
      * Set pre-flight cache max period in seconds.
-     *
-     * @param int $cacheMaxAge
-     *
-     * @return self
      */
     public function setPreFlightCacheMaxAge(int $cacheMaxAge): self
     {
@@ -315,7 +231,7 @@ class Settings implements AnalysisStrategyInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isForceAddAllowedMethodsToPreFlightResponse(): bool
     {
@@ -327,8 +243,6 @@ class Settings implements AnalysisStrategyInterface
      * non of them is 'Content-Type' (see #6.2.10 CORS).
      *
      * @see http://www.w3.org/TR/cors/#resource-preflight-requests
-     *
-     * @return self
      */
     public function enableAddAllowedMethodsToPreFlightResponse(): self
     {
@@ -342,8 +256,6 @@ class Settings implements AnalysisStrategyInterface
      * non of them is 'Content-Type' (see #6.2.10 CORS).
      *
      * @see http://www.w3.org/TR/cors/#resource-preflight-requests
-     *
-     * @return self
      */
     public function disableAddAllowedMethodsToPreFlightResponse(): self
     {
@@ -353,7 +265,7 @@ class Settings implements AnalysisStrategyInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isForceAddAllowedHeadersToPreFlightResponse(): bool
     {
@@ -365,8 +277,6 @@ class Settings implements AnalysisStrategyInterface
      * non of them is 'Content-Type' (see #6.2.10 CORS).
      *
      * @see http://www.w3.org/TR/cors/#resource-preflight-requests
-     *
-     * @return self
      */
     public function enableAddAllowedHeadersToPreFlightResponse(): self
     {
@@ -380,8 +290,6 @@ class Settings implements AnalysisStrategyInterface
      * non of them is 'Content-Type' (see #6.2.10 CORS).
      *
      * @see http://www.w3.org/TR/cors/#resource-preflight-requests
-     *
-     * @return self
      */
     public function disableAddAllowedHeadersToPreFlightResponse(): self
     {
@@ -391,7 +299,7 @@ class Settings implements AnalysisStrategyInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isRequestCredentialsSupported(RequestInterface $request): bool
     {
@@ -400,8 +308,6 @@ class Settings implements AnalysisStrategyInterface
 
     /**
      * If access with credentials is supported by the resource.
-     *
-     * @return self
      */
     public function setCredentialsSupported(): self
     {
@@ -412,8 +318,6 @@ class Settings implements AnalysisStrategyInterface
 
     /**
      * If access with credentials is supported by the resource.
-     *
-     * @return self
      */
     public function setCredentialsNotSupported(): self
     {
@@ -423,19 +327,17 @@ class Settings implements AnalysisStrategyInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isRequestOriginAllowed(string $requestOrigin): bool
     {
         return
-            $this->areAllOriginsAllowed === true ||
-            isset($this->allowedOrigins[\strtolower($requestOrigin)]) === true;
+            true === $this->areAllOriginsAllowed
+            || true === isset($this->allowedOrigins[\strtolower($requestOrigin)]);
     }
 
     /**
      * Enable all origins allowed.
-     *
-     * @return self
      */
     public function enableAllOriginsAllowed(): self
     {
@@ -446,10 +348,6 @@ class Settings implements AnalysisStrategyInterface
 
     /**
      * Set allowed origins.
-     *
-     * @param array $origins
-     *
-     * @return self
      */
     public function setAllowedOrigins(array $origins): self
     {
@@ -465,17 +363,15 @@ class Settings implements AnalysisStrategyInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isRequestMethodSupported(string $method): bool
     {
-        return $this->areAllMethodsAllowed === true || isset($this->allowedLcMethods[\strtolower($method)]) === true;
+        return true === $this->areAllMethodsAllowed || true === isset($this->allowedLcMethods[\strtolower($method)]);
     }
 
     /**
      * Enable all methods allowed.
-     *
-     * @return self
      */
     public function enableAllMethodsAllowed(): self
     {
@@ -489,15 +385,11 @@ class Settings implements AnalysisStrategyInterface
      *
      * Security Note: you have to remember CORS is not access control system and you should not expect all
      * cross-origin requests will have pre-flights. For so-called 'simple' methods with so-called 'simple'
-     * headers request will be made without pre-flight. Thus you can not restrict such requests with CORS
+     * headers request will be made without pre-flight. Thus, you can not restrict such requests with CORS
      * and should use other means.
      * For example method 'GET' without any headers or with only 'simple' headers will not have pre-flight
      * request so disabling it will not restrict access to resource(s).
      * You can read more on 'simple' methods at http://www.w3.org/TR/cors/#simple-method
-     *
-     * @param array $methods
-     *
-     * @return self
      */
     public function setAllowedMethods(array $methods): self
     {
@@ -514,18 +406,16 @@ class Settings implements AnalysisStrategyInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isRequestAllHeadersSupported(array $lcHeaders): bool
     {
-        return $this->areAllHeadersAllowed === true ||
-            \count(\array_intersect($this->allowedLcHeaders, $lcHeaders)) === \count($lcHeaders);
+        return true === $this->areAllHeadersAllowed
+            || \count(\array_intersect($this->allowedLcHeaders, $lcHeaders)) === \count($lcHeaders);
     }
 
     /**
      * Enable all headers allowed.
-     *
-     * @return self
      */
     public function enableAllHeadersAllowed(): self
     {
@@ -537,17 +427,13 @@ class Settings implements AnalysisStrategyInterface
     /**
      * Set allowed headers.
      *
-     * Security Note: you have to remember CORS is not access control system and you should not expect all
+     * Security Note: you have to remember CORS is not access control system, and you should not expect all
      * cross-origin requests will have pre-flights. For so-called 'simple' methods with so-called 'simple'
-     * headers request will be made without pre-flight. Thus you can not restrict such requests with CORS
+     * headers request will be made without pre-flight. Thus, you can not restrict such requests with CORS
      * and should use other means.
      * For example method 'GET' without any headers or with only 'simple' headers will not have pre-flight
      * request so disabling it will not restrict access to resource(s).
      * You can read more on 'simple' headers at http://www.w3.org/TR/cors/#simple-header
-     *
-     * @param array $headers
-     *
-     * @return self
      */
     public function setAllowedHeaders(array $headers): self
     {
@@ -564,7 +450,7 @@ class Settings implements AnalysisStrategyInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getRequestAllowedMethods(RequestInterface $request): string
     {
@@ -572,7 +458,7 @@ class Settings implements AnalysisStrategyInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getRequestAllowedHeaders(RequestInterface $request): string
     {
@@ -580,7 +466,7 @@ class Settings implements AnalysisStrategyInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getResponseExposedHeaders(RequestInterface $request): string
     {
@@ -589,10 +475,6 @@ class Settings implements AnalysisStrategyInterface
 
     /**
      * Set headers other than the simple ones that might be exposed to user agent.
-     *
-     * @param array $headers
-     *
-     * @return Settings
      */
     public function setExposedHeaders(array $headers): self
     {
@@ -600,7 +482,7 @@ class Settings implements AnalysisStrategyInterface
         // make sense to include those headers to exposed.
         $filtered = [];
         foreach ($headers as $header) {
-            if (\in_array(\strtolower($header), static::SIMPLE_LC_RESPONSE_HEADERS) === false) {
+            if (false === \in_array(\strtolower($header), static::SIMPLE_LC_RESPONSE_HEADERS)) {
                 $filtered[] = $header;
             }
         }
@@ -611,7 +493,7 @@ class Settings implements AnalysisStrategyInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isCheckHost(): bool
     {
@@ -621,9 +503,7 @@ class Settings implements AnalysisStrategyInterface
     /**
      * If request 'Host' header should be checked against server's origin.
      * Check of Host header is strongly encouraged by #6.3 CORS.
-     * Header 'Host' must present for all requests rfc2616 14.23
-     *
-     * @return self
+     * Header 'Host' must present for all requests rfc2616 14.23.
      */
     public function enableCheckHost(): self
     {
@@ -635,9 +515,7 @@ class Settings implements AnalysisStrategyInterface
     /**
      * If request 'Host' header should be checked against server's origin.
      * Check of Host header is strongly encouraged by #6.3 CORS.
-     * Header 'Host' must present for all requests rfc2616 14.23
-     *
-     * @return self
+     * Header 'Host' must present for all requests rfc2616 14.23.
      */
     public function disableCheckHost(): self
     {

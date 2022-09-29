@@ -1,9 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Neomerx\Cors\Contracts\Constants;
 
 /**
- * Copyright 2015-2020 info@neomerx.com
+ * Copyright 2015-2020 info@neomerx.com.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,79 +19,75 @@ namespace Neomerx\Cors\Contracts\Constants;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/**
- * @package Neomerx\Cors
- */
 interface CorsResponseHeaders
 {
     /**
-     * CORS Header
+     * CORS Header.
      *
      * @see http://www.w3.org/TR/cors/#access-control-allow-origin-response-header
      */
-    const ALLOW_ORIGIN = 'Access-Control-Allow-Origin';
+    public const ALLOW_ORIGIN = 'Access-Control-Allow-Origin';
 
     /**
-     * CORS Header
+     * CORS Header.
      *
      * @see http://www.w3.org/TR/cors/#access-control-allow-credentials-response-header
      */
-    const ALLOW_CREDENTIALS = 'Access-Control-Allow-Credentials';
+    public const ALLOW_CREDENTIALS = 'Access-Control-Allow-Credentials';
 
     /**
-     * CORS Header
+     * CORS Header.
      *
      * @see http://www.w3.org/TR/cors/#access-control-expose-headers-response-header
      */
-    const EXPOSE_HEADERS = 'Access-Control-Expose-Headers';
+    public const EXPOSE_HEADERS = 'Access-Control-Expose-Headers';
 
     /**
-     * CORS Header
+     * CORS Header.
      *
      * @see http://www.w3.org/TR/cors/#access-control-max-age-response-header
      */
-    const MAX_AGE = 'Access-Control-Max-Age';
+    public const MAX_AGE = 'Access-Control-Max-Age';
 
     /**
-     * CORS Header
+     * CORS Header.
      *
      * @see http://www.w3.org/TR/cors/#access-control-allow-methods-response-header
      */
-    const ALLOW_METHODS = 'Access-Control-Allow-Methods';
+    public const ALLOW_METHODS = 'Access-Control-Allow-Methods';
 
     /**
-     * CORS Header
+     * CORS Header.
      *
      * @see http://www.w3.org/TR/cors/#access-control-allow-headers-response-header
      */
-    const ALLOW_HEADERS = 'Access-Control-Allow-Headers';
+    public const ALLOW_HEADERS = 'Access-Control-Allow-Headers';
 
     /**
-     * CORS Header
+     * CORS Header.
      *
      * @see http://www.w3.org/TR/cors/#resource-implementation
      */
-    const VARY = 'Vary';
+    public const VARY = 'Vary';
 
     /**
-     * 'All' value for 'Access-Control-Allow-Origin' header
+     * 'All' value for 'Access-Control-Allow-Origin' header.
      *
      * @see http://www.w3.org/TR/cors/#access-control-allow-origin-response-header
      */
-    const VALUE_ALLOW_ORIGIN_ALL = '*';
+    public const VALUE_ALLOW_ORIGIN_ALL = '*';
 
     /**
-     * 'null' value for 'Access-Control-Allow-Origin' header
+     * 'null' value for 'Access-Control-Allow-Origin' header.
      *
      * @see http://www.w3.org/TR/cors/#access-control-allow-origin-response-header
      */
-    const VALUE_ALLOW_ORIGIN_NULL = 'null';
+    public const VALUE_ALLOW_ORIGIN_NULL = 'null';
 
     /**
-     * 'null' value for 'Access-Control-Allow-Origin' header
+     * 'null' value for 'Access-Control-Allow-Origin' header.
      *
      * @see http://www.w3.org/TR/cors/#access-control-allow-credentials-response-header
      */
-    const VALUE_ALLOW_CREDENTIALS_TRUE = 'true';
+    public const VALUE_ALLOW_CREDENTIALS_TRUE = 'true';
 }
