@@ -47,10 +47,10 @@
   },
   "scripts": {
     "test": ["@test-unit", "@test-cs", "@test-cs-fixer"],
-    "test-unit": "XDEBUG_MODE=coverage ./vendor/phpunit/phpunit/phpunit --coverage-text",
-    "test-unit-phpdbg": "phpdbg -qrr ./vendor/bin/phpunit --coverage-text",
-    "test-cs": "./vendor/bin/phpcs -p -s --standard=PSR2 ./src ./tests",
-    "test-cs-fixer": "./vendor/bin/php-cs-fixer fix --diff --dry-run -v --allow-risky=yes --config=php-cs-fixer.dist.php",
-    "cs-fixer": "./vendor/bin/php-cs-fixer fix --diff -v --ansi --allow-risky=yes --config=php-cs-fixer.dist.php"
+    "test-unit": "XDEBUG_MODE=coverage phpunit --coverage-text --coverage-clover=coverage.clover",
+    "test-unit-phpdbg": "phpdbg -qrr phpunit --coverage-text --coverage-clover=coverage.clover",
+    "test-cs": "phpcs -p -s --standard=PSR2 ./src ./tests",
+    "test-cs-fixer": "php-cs-fixer fix --diff --dry-run -v --allow-risky=yes --config=php-cs-fixer.dist.php",
+    "cs-fixer": "php-cs-fixer fix --diff -v --ansi --allow-risky=yes --config=php-cs-fixer.dist.php"
   }
 }
