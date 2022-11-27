@@ -21,6 +21,7 @@ namespace Neomerx\Cors\Log;
  */
 
 use Psr\Log\LoggerAwareTrait as PsrLoggerAwareTrait;
+use Psr\Log\LoggerInterface;
 
 trait LoggerAwareTrait
 {
@@ -28,21 +29,21 @@ trait LoggerAwareTrait
 
     protected function logDebug(string $message, array $context = []): void
     {
-        true === $this->hasLogger() ?: $this->logger->debug($message, $context);
+        true === $this->hasLogger() && $this->logger->debug($message, $context);
     }
 
     protected function logInfo(string $message, array $context = []): void
     {
-        true === $this->hasLogger() ?: $this->logger->info($message, $context);
+        true === $this->hasLogger() && $this->logger->info($message, $context);
     }
 
     protected function logWarning(string $message, array $context = []): void
     {
-        true === $this->hasLogger() ?: $this->logger->warning($message, $context);
+        true === $this->hasLogger() && $this->logger->warning($message, $context);
     }
 
     protected function hasLogger(): bool
     {
-        return null === $this->logger;
+        return $this->logger instanceof LoggerInterface;
     }
 }
